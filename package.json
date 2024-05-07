@@ -4,7 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npx hardhat test",
+    "clean": "npx hardhat clean",
+    "compile": "npx hardhat compile",
+    "deploy:localhost": "hardhat run scripts/deploy.ts --network localhost",
+    "deploy:arbitrumTestnet": "hardhat run scripts/deploy.ts --network arbitrumTestnet",
+    "deploy:arbitrumMainnet": "hardhat run scripts/deploy.ts --network arbitrumMainnet"
   },
   "keywords": [],
   "author": "",
