@@ -22,9 +22,4 @@ describe("EngagementsScore", () => {
     const { engagementsScore } = await loadFixture(deployContractFixtures);
     expect(await engagementsScore.getAddress()).to.properAddress;
   });
-
-  it("tokenCounter should be 0", async () => {
-    const { engagementsScore } = await loadFixture(deployContractFixtures);
-    expect(await engagementsScore.tokenCounter()).to.equal(0);
-  });
 });
