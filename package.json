@@ -8,21 +8,23 @@
     "clean": "npx hardhat clean",
     "compile": "npx hardhat compile",
     "deploy:localhost": "hardhat run scripts/deploy.ts --network localhost",
-    "deploy:arbitrumTestnet": "hardhat run scripts/deploy.ts --network arbitrumTestnet",
-    "deploy:arbitrumMainnet": "hardhat run scripts/deploy.ts --network arbitrumMainnet"
+    "deploy:arbitrumTestnet": "hardhat run scripts/deploy.ts --network sepolia",
+    "deploy:arbitrumMainnet": "hardhat run scripts/deploy.ts --network arbitrum"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@nomicfoundation/hardhat-ethers": "^3.0.6",
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
     "@openzeppelin/hardhat-upgrades": "^3.1.0",
-    "hardhat": "^2.22.3",
+    "chai": "^4.4.1",
+    "dotenv": "^16.4.5",
+    "hardhat": "^2.22.4",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.5"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^5.0.2",
-    "dotenv": "^16.4.5"
+    "@openzeppelin/contracts": "^5.0.2"
   }
 }

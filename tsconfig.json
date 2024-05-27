@@ -1,5 +1,8 @@
 {
   "compilerOptions": {
+    "paths": {
+      "~/*": ["./*"]
+    },
     "target": "es2020",
     "module": "commonjs",
     "esModuleInterop": true,
@@ -7,5 +10,7 @@
     "strict": true,
     "skipLibCheck": true,
     "resolveJsonModule": true
-  }
+  },
+  "include": ["./scripts/**/*.ts", "./tests/**/*.ts", "scripts/server.mjs"],
+  "files": ["hardhat.config.ts"]
 }
