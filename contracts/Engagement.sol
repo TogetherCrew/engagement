@@ -9,9 +9,14 @@ contract Engagement {
   uint private _tokenCount;
 
   mapping (uint id => mapping(address account => uint amount)) _balances;
+  mapping (uint id => uint) _claimCount; 
 
   error OwnableUnauthorizedAccount(address account);
+  error InvalidTokenId(uint id);
+  error AlreadyClaimed(uint id, address account);
+
   event Mint(uint id, address account);
+  event Claim(uint id, address account, uint claimCount);
 
   constructor() {
     _owner = msg.sender;
@@ -46,4 +51,19 @@ contract Engagement {
     return _balances[id][account];
   }
 
+  function getClaimCount(uint id) public view returns (uint) {
+    return _claimCount[id];
+  }
+
+  function claim(uint id) public {
+    if(id >= _tokenCount) {
+      revert InvalidTokenId(id);
+    }
+    if (_balances[id][msg.sender] > 0) {
+      revert AlreadyClaimed(id, msg.sender);
+    }
+    _balances[id][msg.sender] = 1;
+    _claimCount[id] += 1;
+    emit Claim(id, msg.sender, _claimCount[id]); 
+  }
 }
