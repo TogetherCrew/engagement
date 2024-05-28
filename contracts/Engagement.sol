@@ -6,6 +6,7 @@ pragma solidity ^0.8.24;
 
 contract Engagement {
   address private _owner;
+  uint private _tokenCount;
 
   error OwnableUnauthorizedAccount(address account);
 
@@ -28,8 +29,12 @@ contract Engagement {
     return _owner;
   }
 
-  function mint() public onlyOwner {
+  function tokenCount() public view virtual returns (uint) {
+    return _tokenCount;
+  }
 
+  function mint() public onlyOwner {
+    _tokenCount = _tokenCount + 1;
   }
 
 }

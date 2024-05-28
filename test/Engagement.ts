@@ -4,7 +4,7 @@ import {
 } from "@nomicfoundation/hardhat-toolbox-viem/network-helpers";
 import { expect } from "chai";
 import hre from "hardhat";
-import { getAddress, parseGwei } from "viem";
+import { getAddress, parseEther, parseUnits } from "viem";
 
 describe("Engage", function () {
   // We define a fixture to reuse the same setup in every test.
@@ -42,6 +42,13 @@ describe("Engage", function () {
       const { contract, otherAccount } = await loadFixture(deployFixture)
 
       await expect(contract.write.mint({ account: otherAccount.account })).to.be.rejected
+    })
+
+    it("Should increment token count by 1", async function () {
+      const { contract } = await loadFixture(deployFixture)
+      expect(await contract.read.tokenCount()).to.equal(parseUnits("0", 0));
+      await contract.write.mint()
+      expect(await contract.read.tokenCount()).to.equal(parseUnits("1", 0));
     })
   })
 
