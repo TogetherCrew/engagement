@@ -28,7 +28,6 @@ describe("Engage", function () {
   }
 
   describe("Deployment", function () {
-
     it("Should set the right owner", async function () {
       const { contract, owner } = await loadFixture(deployFixture);
 
@@ -37,5 +36,13 @@ describe("Engage", function () {
       );
     });
   });
+
+  describe("Mint", function () {
+    it("Should revert if not owner", async function () {
+      const { contract, otherAccount } = await loadFixture(deployFixture)
+
+      await expect(contract.write.mint({ account: otherAccount.account })).to.be.rejected
+    })
+  })
 
 });
