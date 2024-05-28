@@ -50,6 +50,26 @@ describe("Engage", function () {
       await contract.write.mint()
       expect(await contract.read.tokenCount()).to.equal(parseUnits("1", 0));
     })
+
+    it("Should emit a Mint event", async function () {
+      const { contract, owner } = await loadFixture(deployFixture)
+      const hash = await contract.write.mint()
+      const events = await contract.getEvents.Mint()
+      expect(events.length).to.equal(1)
+      const event = events[0]
+      expect(event.eventName).to.equal('Mint')
+      expect(event.transactionHash).to.equal(hash)
+      expect(event.args.id).to.equal(parseUnits("0", 0))
+      expect(event.args.account).to.equal(getAddress(owner.account.address))
+    })
+
+    it("Should have a token balance of 1", async function () {
+      const { contract, owner } = await loadFixture(deployFixture)
+      expect(await contract.read.balanceOf([owner.account.address, parseUnits("0",0)])).to.equal(parseUnits("0",0))
+      await contract.write.mint()
+      expect(await contract.read.balanceOf([owner.account.address, parseUnits("0",0)])).to.equal(parseUnits("1",0))
+    })
+
   })
 
 });

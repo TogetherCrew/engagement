@@ -8,7 +8,10 @@ contract Engagement {
   address private _owner;
   uint private _tokenCount;
 
+  mapping (uint id => mapping(address account => uint amount)) _balances;
+
   error OwnableUnauthorizedAccount(address account);
+  event Mint(uint id, address account);
 
   constructor() {
     _owner = msg.sender;
@@ -34,7 +37,13 @@ contract Engagement {
   }
 
   function mint() public onlyOwner {
+    _balances[_tokenCount][msg.sender] = 1;
+    emit Mint(_tokenCount, msg.sender);
     _tokenCount = _tokenCount + 1;
+  }
+
+  function balanceOf(address account, uint id) public view virtual returns (uint) {
+    return _balances[id][account];
   }
 
 }
