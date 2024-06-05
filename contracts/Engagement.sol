@@ -25,6 +25,7 @@ contract EngagementContract is ERC1155, AccessControl {
     }
 
     function issue() external {
+        _mint(msg.sender, _counter, 1, "");
         _counter++;
     }
 }

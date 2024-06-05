@@ -65,5 +65,26 @@ describe("Engage", function () {
 
       expect(Number(counter1)).to.be.equal(Number(counter0) + 1);
     });
+
+    it("Should have an account balance of 1", async function () {
+      const { contract, otherAccount } = await loadFixture(deployFixture);
+
+      const counter = await contract.read.counter();
+      const balance0 = await contract.read.balanceOf([
+        getAddress(otherAccount.account.address),
+        counter,
+      ]);
+
+      expect(balance0).to.be.equal(parseUnits("0", 0));
+
+      await contract.write.issue({ account: otherAccount.account.address });
+
+      const balance1 = await contract.read.balanceOf([
+        getAddress(otherAccount.account.address),
+        counter,
+      ]);
+
+      expect(balance1).to.be.equal(parseUnits("1", 0));
+    });
   });
 });
