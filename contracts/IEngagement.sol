@@ -3,7 +3,7 @@ interface IEngagement {
 
     function counter() external view returns (uint);
 
-    function issue() external;
+    function issue(string memory hash) external;
 
     function mint(
         address account,

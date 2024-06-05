@@ -23,12 +23,15 @@ describe("Engage", function () {
     const [deployer, provider, otherAccount] =
       await hre.viem.getWalletClients();
 
+    const hash = "SOME_RANDOM_HASH";
+
     const contract = await hre.viem.deployContract("EngagementContract");
 
     const publicClient = await hre.viem.getPublicClient();
 
     return {
       contract,
+      hash,
       deployer,
       provider,
       otherAccount,
@@ -55,11 +58,11 @@ describe("Engage", function () {
 
   describe("Issue", function () {
     it("Should increment counter by 1", async function () {
-      const { contract } = await loadFixture(deployFixture);
+      const { contract, hash } = await loadFixture(deployFixture);
 
       const counter0 = formatUnits(await contract.read.counter(), 0);
 
-      await contract.write.issue();
+      await contract.write.issue([hash]);
 
       const counter1 = formatUnits(await contract.read.counter(), 0);
 
@@ -67,7 +70,7 @@ describe("Engage", function () {
     });
 
     it("Should have an account balance of 1", async function () {
-      const { contract, otherAccount } = await loadFixture(deployFixture);
+      const { contract, otherAccount, hash } = await loadFixture(deployFixture);
 
       const counter = await contract.read.counter();
       const balance0 = await contract.read.balanceOf([
@@ -77,7 +80,9 @@ describe("Engage", function () {
 
       expect(balance0).to.be.equal(parseUnits("0", 0));
 
-      await contract.write.issue({ account: otherAccount.account.address });
+      await contract.write.issue([hash], {
+        account: otherAccount.account.address,
+      });
 
       const balance1 = await contract.read.balanceOf([
         getAddress(otherAccount.account.address),
@@ -88,11 +93,11 @@ describe("Engage", function () {
     });
 
     it("Should emit Issue event", async function () {
-      const { contract, deployer } = await loadFixture(deployFixture);
+      const { contract, deployer, hash } = await loadFixture(deployFixture);
 
       const tokenId = await contract.read.counter();
 
-      const issueHash = await contract.write.issue();
+      const issueHash = await contract.write.issue([hash]);
       const issueEvents = await contract.getEvents.Issue();
 
       expect(issueEvents.length).to.be.equal(1);
@@ -103,6 +108,20 @@ describe("Engage", function () {
       expect(event.args.tokenId).to.be.equal(tokenId);
       expect(event.args.account).to.be.equal(
         getAddress(deployer.account.address)
+      );
+    });
+  });
+
+  describe("Uri", function () {
+    it("Should return formatted Uri", async function () {
+      const { contract, hash } = await loadFixture(deployFixture);
+
+      const tokenId = await contract.read.counter();
+
+      await contract.write.issue([hash]);
+
+      expect(await contract.read.uri([tokenId])).to.be.equal(
+        `ipfs://${hash}.json`
       );
     });
   });
