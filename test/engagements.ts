@@ -5,6 +5,7 @@ import {
 import { expect } from "chai";
 import hre from "hardhat";
 import {
+  formatUnits,
   getAddress,
   keccak256,
   parseEther,
@@ -49,6 +50,20 @@ describe("Engage", function () {
       const { contract } = await loadFixture(deployFixture);
 
       expect(await contract.read.PROVIDER_ROLE()).to.be.exist;
+    });
+  });
+
+  describe("Issue", function () {
+    it("Should increment counter by 1", async function () {
+      const { contract } = await loadFixture(deployFixture);
+
+      const counter0 = formatUnits(await contract.read.counter(), 0);
+
+      await contract.write.issue();
+
+      const counter1 = formatUnits(await contract.read.counter(), 0);
+
+      expect(Number(counter1)).to.be.equal(Number(counter0) + 1);
     });
   });
 });
