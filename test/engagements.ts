@@ -40,6 +40,11 @@ describe("Engage", function () {
   }
 
   describe("Deployment", function () {
+    it("Should have counter equal 0", async function () {
+      const { contract } = await loadFixture(deployFixture);
+
+      expect(await contract.read.counter()).to.be.equal(parseUnits("0", 0));
+    });
     it("Should have deployer as an Admin", async function () {
       const { contract, deployer } = await loadFixture(deployFixture);
 
