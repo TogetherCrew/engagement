@@ -19,7 +19,8 @@ describe("Engage", function () {
   // and reset Hardhat Network to that snapshot in every test.
   async function deployFixture() {
     // Contracts are deployed using the first signer/account by default
-    const [deployer, otherAccount] = await hre.viem.getWalletClients();
+    const [deployer, provider, otherAccount] =
+      await hre.viem.getWalletClients();
 
     const contract = await hre.viem.deployContract("EngagementContract");
 
@@ -28,6 +29,7 @@ describe("Engage", function () {
     return {
       contract,
       deployer,
+      provider,
       otherAccount,
       publicClient,
     };
@@ -41,6 +43,12 @@ describe("Engage", function () {
 
       expect(await contract.read.hasRole([adminRole, deployer.account.address]))
         .to.be.true;
+    });
+
+    it("Should have a PROVIDER_ROLE", async function () {
+      const { contract } = await loadFixture(deployFixture);
+
+      expect(await contract.read.PROVIDER_ROLE()).to.be.exist;
     });
   });
 });
