@@ -4,7 +4,14 @@ import {
 } from "@nomicfoundation/hardhat-toolbox-viem/network-helpers";
 import { expect } from "chai";
 import hre from "hardhat";
-import { getAddress, parseEther, parseUnits } from "viem";
+import {
+  getAddress,
+  keccak256,
+  parseEther,
+  parseUnits,
+  toBytes,
+  toHex,
+} from "viem";
 
 describe("Engage", function () {
   // We define a fixture to reuse the same setup in every test.
@@ -12,27 +19,28 @@ describe("Engage", function () {
   // and reset Hardhat Network to that snapshot in every test.
   async function deployFixture() {
     // Contracts are deployed using the first signer/account by default
-    const [owner, otherAccount] = await hre.viem.getWalletClients();
+    const [deployer, otherAccount] = await hre.viem.getWalletClients();
 
-    const contract = await hre.viem.deployContract("Engagement");
+    const contract = await hre.viem.deployContract("EngagementContract");
 
     const publicClient = await hre.viem.getPublicClient();
 
     return {
       contract,
-      owner,
+      deployer,
       otherAccount,
       publicClient,
     };
   }
 
   describe("Deployment", function () {
-    it("Should set the right owner", async function () {
-      const { contract, owner } = await loadFixture(deployFixture);
+    it("Should have deployer as an Admin", async function () {
+      const { contract, deployer } = await loadFixture(deployFixture);
 
-      expect(await contract.read.owner()).to.equal(
-        getAddress(owner.account.address)
-      );
+      const adminRole = await contract.read.DEFAULT_ADMIN_ROLE();
+
+      expect(await contract.read.hasRole([adminRole, deployer.account.address]))
+        .to.be.true;
     });
   });
 });
