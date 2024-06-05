@@ -86,5 +86,24 @@ describe("Engage", function () {
 
       expect(balance1).to.be.equal(parseUnits("1", 0));
     });
+
+    it("Should emit Issue event", async function () {
+      const { contract, deployer } = await loadFixture(deployFixture);
+
+      const tokenId = await contract.read.counter();
+
+      const issueHash = await contract.write.issue();
+      const issueEvents = await contract.getEvents.Issue();
+
+      expect(issueEvents.length).to.be.equal(1);
+
+      const event = issueEvents[0];
+      expect(event.eventName).to.be.equal("Issue");
+      expect(event.transactionHash).to.be.equal(issueHash);
+      expect(event.args.tokenId).to.be.equal(tokenId);
+      expect(event.args.account).to.be.equal(
+        getAddress(deployer.account.address)
+      );
+    });
   });
 });
