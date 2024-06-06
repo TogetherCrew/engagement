@@ -36,6 +36,7 @@ contract EngagementContract is IEngagement, ERC1155, AccessControl {
         bytes memory data
     ) external override {
         _mint(account, tokenId, amount, data);
+        emit Mint(account, tokenId, amount);
     }
 
     function burn(

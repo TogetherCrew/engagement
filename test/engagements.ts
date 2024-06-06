@@ -14,6 +14,8 @@ import {
   toHex,
 } from "viem";
 
+const hash = "SOME_RANDOM_HASH";
+
 describe("Engage", function () {
   // We define a fixture to reuse the same setup in every test.
   // We use loadFixture to run this setup once, snapshot that state,
@@ -22,8 +24,6 @@ describe("Engage", function () {
     // Contracts are deployed using the first signer/account by default
     const [deployer, provider, otherAccount] =
       await hre.viem.getWalletClients();
-
-    const hash = "SOME_RANDOM_HASH";
 
     const contract = await hre.viem.deployContract("EngagementContract");
 
@@ -132,18 +132,23 @@ describe("Engage", function () {
   });
 
   describe("Mint", function () {
+    const amount = parseUnits("1", 0);
+    const data = "0x0";
+    let tokenId: any;
+    let contract: any;
+    let otherAccount: any;
+
+    beforeEach(async function () {
+      const fixture = await loadFixture(deployFixture);
+      contract = fixture.contract;
+      otherAccount = fixture.otherAccount;
+
+      tokenId = await contract.read.counter();
+      await contract.write.issue([hash]);
+    });
+
     describe("Success", async function () {
       it("Should have an account balance of 1", async function () {
-        const { contract, otherAccount, hash } = await loadFixture(
-          deployFixture
-        );
-
-        const tokenId = await contract.read.counter();
-        const amount = parseUnits("1", 0);
-        const data = "0x0";
-
-        await contract.write.issue([hash]);
-
         const balance0 = await contract.read.balanceOf([
           getAddress(otherAccount.account.address),
           tokenId,
@@ -164,6 +169,26 @@ describe("Engage", function () {
         ]);
 
         expect(balance1).to.be.equal(amount);
+      });
+      it("Should emit Mint event", async function () {
+        const mintHash = await contract.write.mint(
+          [getAddress(otherAccount.account.address), tokenId, amount, data],
+          {
+            account: otherAccount.account.address,
+          }
+        );
+
+        const mintEvents = await contract.getEvents.Mint();
+
+        expect(mintEvents.length).to.be.equal(1);
+
+        const mintEvent = mintEvents[0];
+        expect(mintEvent.eventName).to.be.equal("Mint");
+        expect(mintEvent.transactionHash).to.be.equal(mintHash);
+        expect(mintEvent.args.tokenId).to.be.equal(tokenId);
+        expect(mintEvent.args.account).to.be.equal(
+          getAddress(otherAccount.account.address)
+        );
       });
     });
   });

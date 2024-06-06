@@ -1,5 +1,6 @@
 interface IEngagement {
     event Issue(uint indexed tokenId, address indexed account);
+    event Mint(address indexed account, uint indexed tokenId, uint amount);
 
     function counter() external view returns (uint);
 
