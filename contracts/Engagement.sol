@@ -53,6 +53,9 @@ contract EngagementContract is IEngagement, ERC1155, AccessControl {
         if (account != msg.sender) {
             revert NotAllowed(account, tokenId);
         }
+        if (tokenId >= _counter) {
+            revert NotFound(tokenId);
+        }
         _burn(account, tokenId, 1);
         emit Burn(account, tokenId, 1);
     }

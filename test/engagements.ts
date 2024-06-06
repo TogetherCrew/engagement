@@ -295,6 +295,18 @@ describe("Engage", function () {
             )}", ${tokenId})`
           );
         });
+        it("Should revert with NotFound (token doesn't exist)", async function () {
+          tokenId = parseUnits("999", 0);
+
+          await expect(
+            contract.write.burn(
+              [getAddress(otherAccount.account.address), tokenId, amount],
+              {
+                account: otherAccount.account.address,
+              }
+            )
+          ).to.be.rejectedWith("NotFound(999)");
+        });
       });
     });
   });
