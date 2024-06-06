@@ -51,6 +51,7 @@ contract EngagementContract is IEngagement, ERC1155, AccessControl {
         uint amount
     ) external override {
         _burn(account, tokenId, 1);
+        emit Burn(account, tokenId, 1);
     }
 
     function getScores(

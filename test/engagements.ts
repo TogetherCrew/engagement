@@ -260,6 +260,26 @@ describe("Engage", function () {
 
           expect(balance0).to.be.equal(parseUnits("0", 0));
         });
+        it("Should emit Burn event", async function () {
+          const burnHash = await contract.write.burn(
+            [getAddress(otherAccount.account.address), tokenId, amount],
+            {
+              account: otherAccount.account.address,
+            }
+          );
+
+          const burnEvents = await contract.getEvents.Burn();
+
+          expect(burnEvents.length).to.be.equal(1);
+
+          const burnEvent = burnEvents[0];
+          expect(burnEvent.eventName).to.be.equal("Burn");
+          expect(burnEvent.transactionHash).to.be.equal(burnHash);
+          expect(burnEvent.args.tokenId).to.be.equal(tokenId);
+          expect(burnEvent.args.account).to.be.equal(
+            getAddress(otherAccount.account.address)
+          );
+        });
       });
     });
   });
