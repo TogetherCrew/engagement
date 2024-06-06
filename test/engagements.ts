@@ -22,7 +22,7 @@ describe("Engage", function () {
   // and reset Hardhat Network to that snapshot in every test.
   async function deployFixture() {
     // Contracts are deployed using the first signer/account by default
-    const [deployer, provider, otherAccount, otherAccount2] =
+    const [deployer, provider, otherAccount] =
       await hre.viem.getWalletClients();
 
     const contract = await hre.viem.deployContract("EngagementContract");
@@ -35,7 +35,6 @@ describe("Engage", function () {
       deployer,
       provider,
       otherAccount,
-      otherAccount2,
       publicClient,
     };
   }
@@ -138,13 +137,11 @@ describe("Engage", function () {
     let tokenId: any;
     let contract: any;
     let otherAccount: any;
-    let otherAccount2: any;
 
     beforeEach(async function () {
       const fixture = await loadFixture(deployFixture);
       contract = fixture.contract;
       otherAccount = fixture.otherAccount;
-      otherAccount2 = fixture.otherAccount2;
 
       tokenId = await contract.read.counter();
       await contract.write.issue([hash]);
@@ -287,12 +284,11 @@ describe("Engage", function () {
       describe("Revert", async function () {
         it("Should revert with NotAllowed (msg.sender != account)", async function () {
           await expect(
-            contract.write.burn(
-              [getAddress(otherAccount.account.address), tokenId, amount],
-              {
-                account: otherAccount2.account.address,
-              }
-            )
+            contract.write.burn([
+              getAddress(otherAccount.account.address),
+              tokenId,
+              amount,
+            ])
           ).to.be.rejectedWith(
             `NotAllowed("${getAddress(
               otherAccount.account.address
