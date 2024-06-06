@@ -204,6 +204,31 @@ describe("Engage", function () {
           )
         ).to.be.rejectedWith("NotFound(999)");
       });
+      it("Should revert with MintLimit (token balance > 1)", async function () {
+        await contract.write.mint(
+          [getAddress(otherAccount.account.address), tokenId, amount, data],
+          {
+            account: otherAccount.account.address,
+          }
+        );
+        console.log(
+          await contract.read.balanceOf([
+            getAddress(otherAccount.account.address),
+            tokenId,
+          ])
+        );
+
+        await expect(
+          contract.write.mint(
+            [getAddress(otherAccount.account.address), tokenId, amount, data],
+            {
+              account: otherAccount.account.address,
+            }
+          )
+        ).to.be.rejectedWith(
+          `MintLimit("${getAddress(otherAccount.account.address)}", ${tokenId})`
+        );
+      });
     });
   });
 });

@@ -38,8 +38,11 @@ contract EngagementContract is IEngagement, ERC1155, AccessControl {
         if (tokenId >= _counter) {
             revert NotFound(tokenId);
         }
-        _mint(account, tokenId, amount, data);
-        emit Mint(account, tokenId, amount);
+        if (balanceOf(account, tokenId) > 0) {
+            revert MintLimit(account, tokenId);
+        }
+        _mint(account, tokenId, 1, data);
+        emit Mint(account, tokenId, 1);
     }
 
     function burn(

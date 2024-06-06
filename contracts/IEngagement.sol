@@ -3,6 +3,7 @@ interface IEngagement {
     event Mint(address indexed account, uint indexed tokenId, uint amount);
 
     error NotFound(uint tokenId);
+    error MintLimit(address account, uint tokenId);
 
     function counter() external view returns (uint);
 
