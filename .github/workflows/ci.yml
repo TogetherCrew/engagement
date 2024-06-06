@@ -10,13 +10,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-      - run: yarn install
-      - run: npx hardhat test
+      # - uses: actions/checkout@v3
+      # - uses: actions/setup-node@v3
+      # - run: yarn install
+      # - run: SOLIDITY_COVERAGE=true npx hardhat coverage
+      - uses: paambaati/codeclimate-action@v6.0.0
+        env:
+          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+        with:
+          coverageCommand: SOLIDITY_COVERAGE=true npx hardhat coverage
 
   # lint:
   # scripts:
-
-    # secrets:
-      # CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
