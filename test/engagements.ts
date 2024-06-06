@@ -131,8 +131,8 @@ describe("Engage", function () {
     });
   });
 
-  describe("Mint", function () {
-    const amount = parseUnits("1", 0);
+  describe("Wrapper", function () {
+    let amount = parseUnits("1", 0);
     const data = "0x0";
     let tokenId: any;
     let contract: any;
@@ -147,87 +147,119 @@ describe("Engage", function () {
       await contract.write.issue([hash]);
     });
 
-    describe("Success", async function () {
-      it("Should have an account balance of 1", async function () {
-        const balance0 = await contract.read.balanceOf([
-          getAddress(otherAccount.account.address),
-          tokenId,
-        ]);
-
-        expect(balance0).to.be.equal(parseUnits("0", 0));
-
-        await contract.write.mint(
-          [getAddress(otherAccount.account.address), tokenId, amount, data],
-          {
-            account: otherAccount.account.address,
-          }
-        );
-
-        const balance1 = await contract.read.balanceOf([
-          getAddress(otherAccount.account.address),
-          tokenId,
-        ]);
-
-        expect(balance1).to.be.equal(amount);
-      });
-      it("Should emit Mint event", async function () {
-        const mintHash = await contract.write.mint(
-          [getAddress(otherAccount.account.address), tokenId, amount, data],
-          {
-            account: otherAccount.account.address,
-          }
-        );
-
-        const mintEvents = await contract.getEvents.Mint();
-
-        expect(mintEvents.length).to.be.equal(1);
-
-        const mintEvent = mintEvents[0];
-        expect(mintEvent.eventName).to.be.equal("Mint");
-        expect(mintEvent.transactionHash).to.be.equal(mintHash);
-        expect(mintEvent.args.tokenId).to.be.equal(tokenId);
-        expect(mintEvent.args.account).to.be.equal(
-          getAddress(otherAccount.account.address)
-        );
-      });
-    });
-    describe("Revert", async function () {
-      it("Should revert with NotFound (token doesn't exist)", async function () {
-        const tokenId = parseUnits("999", 0);
-
-        await expect(
-          contract.write.mint(
-            [getAddress(otherAccount.account.address), tokenId, amount, data],
-            {
-              account: otherAccount.account.address,
-            }
-          )
-        ).to.be.rejectedWith("NotFound(999)");
-      });
-      it("Should revert with MintLimit (token balance > 1)", async function () {
-        await contract.write.mint(
-          [getAddress(otherAccount.account.address), tokenId, amount, data],
-          {
-            account: otherAccount.account.address,
-          }
-        );
-        console.log(
-          await contract.read.balanceOf([
+    describe("Mint", function () {
+      describe("Success", async function () {
+        it("Should have an account balance of 1", async function () {
+          const balance0 = await contract.read.balanceOf([
             getAddress(otherAccount.account.address),
             tokenId,
-          ])
-        );
+          ]);
 
-        await expect(
-          contract.write.mint(
+          expect(balance0).to.be.equal(parseUnits("0", 0));
+
+          await contract.write.mint(
             [getAddress(otherAccount.account.address), tokenId, amount, data],
             {
               account: otherAccount.account.address,
             }
-          )
-        ).to.be.rejectedWith(
-          `MintLimit("${getAddress(otherAccount.account.address)}", ${tokenId})`
+          );
+
+          const balance1 = await contract.read.balanceOf([
+            getAddress(otherAccount.account.address),
+            tokenId,
+          ]);
+
+          expect(balance1).to.be.equal(amount);
+        });
+        it("Should emit Mint event", async function () {
+          const mintHash = await contract.write.mint(
+            [getAddress(otherAccount.account.address), tokenId, amount, data],
+            {
+              account: otherAccount.account.address,
+            }
+          );
+
+          const mintEvents = await contract.getEvents.Mint();
+
+          expect(mintEvents.length).to.be.equal(1);
+
+          const mintEvent = mintEvents[0];
+          expect(mintEvent.eventName).to.be.equal("Mint");
+          expect(mintEvent.transactionHash).to.be.equal(mintHash);
+          expect(mintEvent.args.tokenId).to.be.equal(tokenId);
+          expect(mintEvent.args.account).to.be.equal(
+            getAddress(otherAccount.account.address)
+          );
+        });
+      });
+      describe("Revert", async function () {
+        it("Should revert with NotFound (token doesn't exist)", async function () {
+          const tokenId = parseUnits("999", 0);
+
+          await expect(
+            contract.write.mint(
+              [getAddress(otherAccount.account.address), tokenId, amount, data],
+              {
+                account: otherAccount.account.address,
+              }
+            )
+          ).to.be.rejectedWith("NotFound(999)");
+        });
+        it("Should revert with MintLimit (token balance > 1)", async function () {
+          await contract.write.mint(
+            [getAddress(otherAccount.account.address), tokenId, amount, data],
+            {
+              account: otherAccount.account.address,
+            }
+          );
+
+          await expect(
+            contract.write.mint(
+              [getAddress(otherAccount.account.address), tokenId, amount, data],
+              {
+                account: otherAccount.account.address,
+              }
+            )
+          ).to.be.rejectedWith(
+            `MintLimit("${getAddress(
+              otherAccount.account.address
+            )}", ${tokenId})`
+          );
+        });
+      });
+    });
+    describe("Burn", function () {
+      beforeEach(async function () {
+        await contract.write.mint(
+          [getAddress(otherAccount.account.address), tokenId, amount, data],
+          {
+            account: otherAccount.account.address,
+          }
         );
+      });
+      describe("Success", () => {
+        it("Should have an account balance of 0", async function () {
+          const balance1 = await contract.read.balanceOf([
+            getAddress(otherAccount.account.address),
+            tokenId,
+          ]);
+
+          expect(balance1).to.be.equal(amount);
+
+          await contract.write.burn(
+            [getAddress(otherAccount.account.address), tokenId, amount],
+            {
+              account: otherAccount.account.address,
+            }
+          );
+
+          const balance0 = await contract.read.balanceOf([
+            getAddress(otherAccount.account.address),
+            tokenId,
+          ]);
+
+          expect(balance0).to.be.equal(parseUnits("0", 0));
+        });
       });
     });
   });
