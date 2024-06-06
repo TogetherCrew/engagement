@@ -35,6 +35,9 @@ contract EngagementContract is IEngagement, ERC1155, AccessControl {
         uint amount,
         bytes memory data
     ) external override {
+        if (tokenId >= _counter) {
+            revert NotFound(tokenId);
+        }
         _mint(account, tokenId, amount, data);
         emit Mint(account, tokenId, amount);
     }

@@ -191,5 +191,19 @@ describe("Engage", function () {
         );
       });
     });
+    describe("Revert", async function () {
+      it("Should revert with NotFound (token doesn't exist)", async function () {
+        const tokenId = parseUnits("999", 0);
+
+        await expect(
+          contract.write.mint(
+            [getAddress(otherAccount.account.address), tokenId, amount, data],
+            {
+              account: otherAccount.account.address,
+            }
+          )
+        ).to.be.rejectedWith("NotFound(999)");
+      });
+    });
   });
 });
