@@ -310,4 +310,23 @@ describe("Engage", function () {
       });
     });
   });
+
+  describe("Get score", function () {
+    describe("Revert", async function () {
+      it("Should revert with NotFound (token doesn't exist)", async function () {
+        const { contract, otherAccount } = await loadFixture(deployFixture);
+        const date = BigInt(new Date().getTime());
+        const tokenId = parseUnits("999", 0);
+
+        await expect(
+          contract.read.getScores(
+            [date, tokenId, getAddress(otherAccount.account.address)],
+            {
+              account: otherAccount.account.address,
+            }
+          )
+        ).to.be.rejectedWith("NotFound(999)");
+      });
+    });
+  });
 });

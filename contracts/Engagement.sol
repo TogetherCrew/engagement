@@ -64,7 +64,11 @@ contract EngagementContract is IEngagement, ERC1155, AccessControl {
         uint date,
         uint id,
         string memory account
-    ) external view override returns (string memory) {}
+    ) external view override returns (string memory) {
+        if (id >= _counter) {
+            revert NotFound(id);
+        }
+    }
 
     function updateScores(uint date, string memory cid) external override {}
 
