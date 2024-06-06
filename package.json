@@ -4,6 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "devDependencies": {
+    "@biomejs/biome": "^1.8.0",
     "@nomicfoundation/hardhat-ignition": "^0.15.0",
     "@nomicfoundation/hardhat-ignition-viem": "^0.15.0",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
@@ -24,5 +25,14 @@
   },
   "dependencies": {
     "@openzeppelin/contracts": "^5.0.2"
+  },
+  "scripts": {
+    "compile": "npx hardhat compile",
+    "test": "npx hardhat test",
+    "coverage": "SOLIDITY_COVERAGE=true npx hardhat coverage",
+    "lint": "npx @biomejs/biome lint ./test ./ignition/modules",
+    "format": "npx @biomejs/biome format --write ./test ./ignition/modules",
+    "ci": "npx @biomejs/biome ci ./test ./ignition/modules",
+    "deploy": "npx hardhat ignition deploy ./ignition/modules/Engagement.ts"
   }
 }
