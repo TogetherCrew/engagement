@@ -1,0 +1,22 @@
+name: CI Pipeline
+
+on:
+  pull_request: 
+  push:
+    branches: main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+      - run: yarn install
+      - run: SOLIDITY_COVERAGE=true npx hardhat coverage
+      - uses: paambaati/codeclimate-action@v6.0.0
+        env:
+          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+
+  # lint:
+  # scripts:
