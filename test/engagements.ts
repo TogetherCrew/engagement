@@ -130,4 +130,41 @@ describe("Engage", function () {
       );
     });
   });
+
+  describe("Mint", function () {
+    describe("Success", async function () {
+      it("Should have an account balance of 1", async function () {
+        const { contract, otherAccount, hash } = await loadFixture(
+          deployFixture
+        );
+
+        const tokenId = await contract.read.counter();
+        const amount = parseUnits("1", 0);
+        const data = "0x0";
+
+        await contract.write.issue([hash]);
+
+        const balance0 = await contract.read.balanceOf([
+          getAddress(otherAccount.account.address),
+          tokenId,
+        ]);
+
+        expect(balance0).to.be.equal(parseUnits("0", 0));
+
+        await contract.write.mint(
+          [getAddress(otherAccount.account.address), tokenId, amount, data],
+          {
+            account: otherAccount.account.address,
+          }
+        );
+
+        const balance1 = await contract.read.balanceOf([
+          getAddress(otherAccount.account.address),
+          tokenId,
+        ]);
+
+        expect(balance1).to.be.equal(amount);
+      });
+    });
+  });
 });
