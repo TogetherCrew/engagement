@@ -25,7 +25,7 @@ contract EngagementContract is IEngagement, ERC1155, AccessControl {
     function issue(string memory hash_) external {
         _tokenMetadata[_counter] = hash_;
         _mint(msg.sender, _counter, 1, "");
-        emit Issue(_counter, msg.sender);
+        emit Issue(msg.sender, _counter);
         _counter++;
     }
 

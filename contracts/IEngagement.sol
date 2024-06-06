@@ -1,5 +1,5 @@
 interface IEngagement {
-    event Issue(uint indexed tokenId, address indexed account);
+    event Issue(address indexed account, uint indexed tokenId);
     event Mint(address indexed account, uint indexed tokenId, uint amount);
 
     error NotFound(uint tokenId);
