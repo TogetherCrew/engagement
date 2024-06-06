@@ -50,6 +50,9 @@ contract EngagementContract is IEngagement, ERC1155, AccessControl {
         uint tokenId,
         uint amount
     ) external override {
+        if (account != msg.sender) {
+            revert NotAllowed(account, tokenId);
+        }
         _burn(account, tokenId, 1);
         emit Burn(account, tokenId, 1);
     }

@@ -237,7 +237,7 @@ describe("Engage", function () {
           }
         );
       });
-      describe("Success", () => {
+      describe("Success", async function () {
         it("Should have an account balance of 0", async function () {
           const balance1 = await contract.read.balanceOf([
             getAddress(otherAccount.account.address),
@@ -278,6 +278,21 @@ describe("Engage", function () {
           expect(burnEvent.args.tokenId).to.be.equal(tokenId);
           expect(burnEvent.args.account).to.be.equal(
             getAddress(otherAccount.account.address)
+          );
+        });
+      });
+      describe("Revert", async function () {
+        it("Should revert with NotAllowed (msg.sender != account)", async function () {
+          await expect(
+            contract.write.burn([
+              getAddress(otherAccount.account.address),
+              tokenId,
+              amount,
+            ])
+          ).to.be.rejectedWith(
+            `NotAllowed("${getAddress(
+              otherAccount.account.address
+            )}", ${tokenId})`
           );
         });
       });

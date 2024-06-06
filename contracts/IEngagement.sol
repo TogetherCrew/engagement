@@ -5,6 +5,7 @@ interface IEngagement {
 
     error NotFound(uint tokenId);
     error MintLimit(address account, uint tokenId);
+    error NotAllowed(address account, uint tokenId);
 
     function counter() external view returns (uint);
 
