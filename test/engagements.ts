@@ -319,6 +319,27 @@ describe("Engage", function () {
       });
     });
     describe("Get score", function () {
+      beforeEach(async function () {
+        await contract.write.updateScores([date, cid], {
+          account: provider.account.address,
+        });
+      });
+      describe("Success", async function () {
+        it("Should return formatted uri", async function () {
+          const getScoreUri = await contract.read.getScores(
+            [date, tokenId, getAddress(otherAccount.account.address)],
+            {
+              account: otherAccount.account.address,
+            }
+          );
+
+          expect(getScoreUri).to.be.equal(
+            `ipfs://${cid}/${tokenId}/${getAddress(
+              otherAccount.account.address
+            )}.json`
+          );
+        });
+      });
       describe("Revert", async function () {
         it("Should revert with NotFound (token doesn't exist)", async function () {
           const { contract, otherAccount } = await loadFixture(deployFixture);
