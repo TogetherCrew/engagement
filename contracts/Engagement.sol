@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.24;
 
-// Uncomment this line to use console.log
-// import "hardhat/console.sol";
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "./IEngagement.sol";
 
-contract EngagementContract is IEngagement, ERC1155, AccessControl {
+contract Engagement is IEngagement, ERC1155, AccessControl {
     uint private _counter = 0;
     bytes32 public constant PROVIDER_ROLE = keccak256("PROVIDER_ROLE");
 
