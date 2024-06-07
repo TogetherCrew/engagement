@@ -1,18 +1,7 @@
-import {
-  time,
-  loadFixture,
-} from "@nomicfoundation/hardhat-toolbox-viem/network-helpers";
+import { loadFixture } from "@nomicfoundation/hardhat-toolbox-viem/network-helpers";
 import { expect } from "chai";
 import hre from "hardhat";
-import {
-  formatUnits,
-  getAddress,
-  keccak256,
-  parseEther,
-  parseUnits,
-  toBytes,
-  toHex,
-} from "viem";
+import { formatUnits, getAddress, parseUnits } from "viem";
 
 const hash = "SOME_RANDOM_HASH";
 
@@ -25,7 +14,7 @@ describe("Engage", function () {
     const [deployer, provider, otherAccount] =
       await hre.viem.getWalletClients();
 
-    const contract = await hre.viem.deployContract("EngagementContract");
+    const contract = await hre.viem.deployContract("Engagement");
 
     const publicClient = await hre.viem.getPublicClient();
 
