@@ -97,7 +97,9 @@ contract EngagementContract is IEngagement, ERC1155, AccessControl {
         bytes4 interfaceId
     ) public view override(AccessControl, ERC1155) returns (bool) {}
 
-    function uri(uint tokenId) public view override returns (string memory) {
+    function uri(
+        uint tokenId
+    ) public view override validTokenId(tokenId) returns (string memory) {
         return
             string(
                 abi.encodePacked("ipfs://", _tokenMetadata[tokenId], ".json")

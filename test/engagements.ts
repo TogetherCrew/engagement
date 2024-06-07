@@ -123,16 +123,28 @@ describe("Engage", function () {
   });
 
   describe("Uri", function () {
-    it("Should return formatted Uri", async function () {
-      const { contract, hash } = await loadFixture(deployFixture);
+    describe("Success", async function () {
+      it("Should return formatted Uri", async function () {
+        const { contract, hash } = await loadFixture(deployFixture);
 
-      const tokenId = await contract.read.counter();
+        const tokenId = await contract.read.counter();
 
-      await contract.write.issue([hash]);
+        await contract.write.issue([hash]);
 
-      expect(await contract.read.uri([tokenId])).to.be.equal(
-        `ipfs://${hash}.json`
-      );
+        expect(await contract.read.uri([tokenId])).to.be.equal(
+          `ipfs://${hash}.json`
+        );
+      });
+    });
+    describe("Revert", async function () {
+      it("Should revert with NotFound (token doesn't exist)", async function () {
+        const { contract } = await loadFixture(deployFixture);
+        const tokenId = parseUnits("999", 0);
+
+        await expect(contract.read.uri([tokenId])).to.be.rejectedWith(
+          "NotFound(999)"
+        );
+      });
     });
   });
 
