@@ -90,6 +90,7 @@ contract EngagementContract is IEngagement, ERC1155, AccessControl {
         string memory cid
     ) external override onlyRole(PROVIDER_ROLE) {
         _scores[date] = cid;
+        emit UpdateScores(msg.sender, date, cid);
     }
 
     function supportsInterface(

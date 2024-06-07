@@ -356,6 +356,29 @@ describe("Engage", function () {
             )}.json`
           );
         });
+        it("Should emit UpdateScores event", async function () {
+          const updateScoresHash = await contract.write.updateScores(
+            [date, cid],
+            {
+              account: provider.account.address,
+            }
+          );
+
+          const updateScoresEvents = await contract.getEvents.UpdateScores();
+
+          expect(updateScoresEvents.length).to.be.equal(1);
+
+          const updateScoresEvent = updateScoresEvents[0];
+          expect(updateScoresEvent.eventName).to.be.equal("UpdateScores");
+          expect(updateScoresEvent.transactionHash).to.be.equal(
+            updateScoresHash
+          );
+          expect(updateScoresEvent.args.account).to.be.equal(
+            getAddress(provider.account.address)
+          );
+          expect(updateScoresEvent.args.date).to.be.equal(date);
+          expect(updateScoresEvent.args.cid).to.be.equal(cid);
+        });
       });
       describe("Revert", async function () {
         it("Should revert with AccessControlUnauthorizedAccount (msg.sender doesn't have PROVIDER_ROLE)", async function () {
