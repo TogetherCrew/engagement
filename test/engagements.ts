@@ -29,6 +29,11 @@ describe("Engage", function () {
 
     const publicClient = await hre.viem.getPublicClient();
 
+    await contract.write.grantRole([
+      await contract.read.PROVIDER_ROLE(),
+      provider.account.address,
+    ]);
+
     return {
       contract,
       hash,
@@ -118,16 +123,28 @@ describe("Engage", function () {
   });
 
   describe("Uri", function () {
-    it("Should return formatted Uri", async function () {
-      const { contract, hash } = await loadFixture(deployFixture);
+    describe("Success", async function () {
+      it("Should return formatted Uri", async function () {
+        const { contract, hash } = await loadFixture(deployFixture);
 
-      const tokenId = await contract.read.counter();
+        const tokenId = await contract.read.counter();
 
-      await contract.write.issue([hash]);
+        await contract.write.issue([hash]);
 
-      expect(await contract.read.uri([tokenId])).to.be.equal(
-        `ipfs://${hash}.json`
-      );
+        expect(await contract.read.uri([tokenId])).to.be.equal(
+          `ipfs://${hash}.json`
+        );
+      });
+    });
+    describe("Revert", async function () {
+      it("Should revert with NotFound (token doesn't exist)", async function () {
+        const { contract } = await loadFixture(deployFixture);
+        const tokenId = parseUnits("999", 0);
+
+        await expect(contract.read.uri([tokenId])).to.be.rejectedWith(
+          "NotFound(999)"
+        );
+      });
     });
   });
 
@@ -137,11 +154,15 @@ describe("Engage", function () {
     let tokenId: any;
     let contract: any;
     let otherAccount: any;
+    const date = parseUnits("1", 0);
+    const cid = "SOME_RANDOM_CID";
+    let provider: any;
 
     beforeEach(async function () {
       const fixture = await loadFixture(deployFixture);
       contract = fixture.contract;
       otherAccount = fixture.otherAccount;
+      provider = fixture.provider;
 
       tokenId = await contract.read.counter();
       await contract.write.issue([hash]);
@@ -309,9 +330,89 @@ describe("Engage", function () {
         });
       });
     });
+    describe("Get score", function () {
+      beforeEach(async function () {
+        await contract.write.updateScores([date, cid], {
+          account: provider.account.address,
+        });
+      });
+      describe("Success", async function () {
+        it("Should return formatted uri", async function () {
+          const getScoreUri = await contract.read.getScores(
+            [date, tokenId, getAddress(otherAccount.account.address)],
+            {
+              account: otherAccount.account.address,
+            }
+          );
+
+          expect(getScoreUri).to.be.equal(
+            `ipfs://${cid}/${tokenId}/${getAddress(
+              otherAccount.account.address
+            )}.json`
+          );
+        });
+      });
+      describe("Revert", async function () {
+        it("Should revert with NotFound (token doesn't exist)", async function () {
+          const { contract, otherAccount } = await loadFixture(deployFixture);
+          const date = BigInt(new Date().getTime());
+          const tokenId = parseUnits("999", 0);
+
+          await expect(
+            contract.read.getScores(
+              [date, tokenId, getAddress(otherAccount.account.address)],
+              {
+                account: otherAccount.account.address,
+              }
+            )
+          ).to.be.rejectedWith("NotFound(999)");
+        });
+      });
+    });
     describe("Update Scores", function () {
-      const date = BigInt(1625097600);
-      const cid = "SOME_RANDOM_CID";
+      describe("Success", async function () {
+        it("Should update scores mapping", async function () {
+          await contract.write.updateScores([date, cid], {
+            account: provider.account.address,
+          });
+
+          const scores = await contract.read.getScores(
+            [date, tokenId, getAddress(provider.account.address)],
+            {
+              account: provider.account.address,
+            }
+          );
+
+          expect(scores).to.be.equal(
+            `ipfs://${cid}/${tokenId}/${getAddress(
+              provider.account.address
+            )}.json`
+          );
+        });
+        it("Should emit UpdateScores event", async function () {
+          const updateScoresHash = await contract.write.updateScores(
+            [date, cid],
+            {
+              account: provider.account.address,
+            }
+          );
+
+          const updateScoresEvents = await contract.getEvents.UpdateScores();
+
+          expect(updateScoresEvents.length).to.be.equal(1);
+
+          const updateScoresEvent = updateScoresEvents[0];
+          expect(updateScoresEvent.eventName).to.be.equal("UpdateScores");
+          expect(updateScoresEvent.transactionHash).to.be.equal(
+            updateScoresHash
+          );
+          expect(updateScoresEvent.args.account).to.be.equal(
+            getAddress(provider.account.address)
+          );
+          expect(updateScoresEvent.args.date).to.be.equal(date);
+          expect(updateScoresEvent.args.cid).to.be.equal(cid);
+        });
+      });
       describe("Revert", async function () {
         it("Should revert with AccessControlUnauthorizedAccount (msg.sender doesn't have PROVIDER_ROLE)", async function () {
           const { contract, otherAccount } = await loadFixture(deployFixture);
@@ -327,25 +428,6 @@ describe("Engage", function () {
             )}", "${PROVIDER_ROLE}")`
           );
         });
-      });
-    });
-  });
-
-  describe("Get score", function () {
-    describe("Revert", async function () {
-      it("Should revert with NotFound (token doesn't exist)", async function () {
-        const { contract, otherAccount } = await loadFixture(deployFixture);
-        const date = BigInt(new Date().getTime());
-        const tokenId = parseUnits("999", 0);
-
-        await expect(
-          contract.read.getScores(
-            [date, tokenId, getAddress(otherAccount.account.address)],
-            {
-              account: otherAccount.account.address,
-            }
-          )
-        ).to.be.rejectedWith("NotFound(999)");
       });
     });
   });
