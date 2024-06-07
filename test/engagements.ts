@@ -29,6 +29,11 @@ describe("Engage", function () {
 
     const publicClient = await hre.viem.getPublicClient();
 
+    await contract.write.grantRole([
+      await contract.read.PROVIDER_ROLE(),
+      provider.account.address,
+    ]);
+
     return {
       contract,
       hash,
@@ -137,11 +142,15 @@ describe("Engage", function () {
     let tokenId: any;
     let contract: any;
     let otherAccount: any;
+    const date = parseUnits("1", 0);
+    const cid = "SOME_RANDOM_CID";
+    let provider: any;
 
     beforeEach(async function () {
       const fixture = await loadFixture(deployFixture);
       contract = fixture.contract;
       otherAccount = fixture.otherAccount;
+      provider = fixture.provider;
 
       tokenId = await contract.read.counter();
       await contract.write.issue([hash]);
@@ -309,9 +318,45 @@ describe("Engage", function () {
         });
       });
     });
+    describe("Get score", function () {
+      describe("Revert", async function () {
+        it("Should revert with NotFound (token doesn't exist)", async function () {
+          const { contract, otherAccount } = await loadFixture(deployFixture);
+          const date = BigInt(new Date().getTime());
+          const tokenId = parseUnits("999", 0);
+
+          await expect(
+            contract.read.getScores(
+              [date, tokenId, getAddress(otherAccount.account.address)],
+              {
+                account: otherAccount.account.address,
+              }
+            )
+          ).to.be.rejectedWith("NotFound(999)");
+        });
+      });
+    });
     describe("Update Scores", function () {
-      const date = BigInt(1625097600);
-      const cid = "SOME_RANDOM_CID";
+      describe("Success", async function () {
+        it("Should update scores mapping", async function () {
+          await contract.write.updateScores([date, cid], {
+            account: provider.account.address,
+          });
+
+          const scores = await contract.read.getScores(
+            [date, tokenId, getAddress(provider.account.address)],
+            {
+              account: provider.account.address,
+            }
+          );
+
+          expect(scores).to.be.equal(
+            `ipfs://${cid}/${tokenId}/${getAddress(
+              provider.account.address
+            )}.json`
+          );
+        });
+      });
       describe("Revert", async function () {
         it("Should revert with AccessControlUnauthorizedAccount (msg.sender doesn't have PROVIDER_ROLE)", async function () {
           const { contract, otherAccount } = await loadFixture(deployFixture);
@@ -327,25 +372,6 @@ describe("Engage", function () {
             )}", "${PROVIDER_ROLE}")`
           );
         });
-      });
-    });
-  });
-
-  describe("Get score", function () {
-    describe("Revert", async function () {
-      it("Should revert with NotFound (token doesn't exist)", async function () {
-        const { contract, otherAccount } = await loadFixture(deployFixture);
-        const date = BigInt(new Date().getTime());
-        const tokenId = parseUnits("999", 0);
-
-        await expect(
-          contract.read.getScores(
-            [date, tokenId, getAddress(otherAccount.account.address)],
-            {
-              account: otherAccount.account.address,
-            }
-          )
-        ).to.be.rejectedWith("NotFound(999)");
       });
     });
   });
