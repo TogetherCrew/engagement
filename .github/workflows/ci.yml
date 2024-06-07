@@ -6,17 +6,38 @@ on:
     branches: main
 
 jobs:
-  test:
+  compile:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
       - run: yarn install
-      - run: SOLIDITY_COVERAGE=true npx hardhat coverage
+      - run: yarn compile
+
+  # ci:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: actions/setup-node@v4
+  #     - run: yarn install
+  #     - run: yarn ci
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+      - run: yarn install
+      - run: yarn coverage
       - uses: paambaati/codeclimate-action@v6.0.0
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
 
-  # lint:
-  # scripts:
+  # deploy:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: actions/setup-node@v4
+  #     - run: yarn install
+  #     - run: npx hardhat node
+  #     - run: yarn deploy --network localhost
