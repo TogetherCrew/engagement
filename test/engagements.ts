@@ -309,5 +309,25 @@ describe("Engage", function () {
         });
       });
     });
+    describe("Update Scores", function () {
+      const date = BigInt(1625097600);
+      const cid = "SOME_RANDOM_CID";
+      describe("Revert", async function () {
+        it("Should revert with AccessControlUnauthorizedAccount (msg.sender doesn't have PROVIDER_ROLE)", async function () {
+          const { contract, otherAccount } = await loadFixture(deployFixture);
+          const PROVIDER_ROLE = await contract.read.PROVIDER_ROLE();
+
+          await expect(
+            contract.write.updateScores([date, cid], {
+              account: otherAccount.account.address,
+            })
+          ).to.be.rejectedWith(
+            `AccessControlUnauthorizedAccount("${getAddress(
+              otherAccount.account.address
+            )}", "${PROVIDER_ROLE}")`
+          );
+        });
+      });
+    });
   });
 });
