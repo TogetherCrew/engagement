@@ -70,7 +70,10 @@ contract EngagementContract is IEngagement, ERC1155, AccessControl {
         }
     }
 
-    function updateScores(uint date, string memory cid) external override {}
+    function updateScores(
+        uint date,
+        string memory cid
+    ) external override onlyRole(PROVIDER_ROLE) {}
 
     function supportsInterface(
         bytes4 interfaceId
