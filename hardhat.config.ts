@@ -2,15 +2,9 @@ import type { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox-viem";
 import { vars } from "hardhat/config";
 
-const ALCHEMY_SEPOLIA_ENDPOINT = vars.get("ALCHEMY_SEPOLIA_ENDPOINT");
-const PRIVATE_KEY = vars.get("PRIVATE_KEY");
-const ETHERSCAN_API_KEY = vars.get("ETHERSCAN_API_KEY");
-
-if (!ALCHEMY_SEPOLIA_ENDPOINT || !PRIVATE_KEY) {
-  throw new Error(
-    "Please set ALCHEMY_SEPOLIA_ENDPOINT and PRIVATE_KEY in your configuration variables."
-  );
-}
+const ALCHEMY_SEPOLIA_ENDPOINT = vars.get("ALCHEMY_SEPOLIA_ENDPOINT", "");
+const PRIVATE_KEY = vars.get("PRIVATE_KEY", "");
+const ETHERSCAN_API_KEY = vars.get("ETHERSCAN_API_KEY", "");
 
 const config: HardhatUserConfig = {
   solidity: "0.8.24",
