@@ -3,7 +3,7 @@ import "@nomicfoundation/hardhat-toolbox-viem";
 import { vars } from "hardhat/config";
 
 const ALCHEMY_SEPOLIA_ENDPOINT = vars.get("ALCHEMY_SEPOLIA_ENDPOINT", "");
-const PRIVATE_KEY = vars.get("PRIVATE_KEY", "");
+const PRIVATE_KEYS = vars.has("PRIVATE_KEYS") ? vars.get("PRIVATE_KEYS").split(", ") : [];
 const ETHERSCAN_API_KEY = vars.get("ETHERSCAN_API_KEY", "");
 
 const config: HardhatUserConfig = {
@@ -11,12 +11,12 @@ const config: HardhatUserConfig = {
   networks: {
     sepolia: {
       url: ALCHEMY_SEPOLIA_ENDPOINT,
-      accounts: [PRIVATE_KEY],
+      accounts: PRIVATE_KEYS,
     },
-    localhost: {
-      url: "http://127.0.0.1:8545/",
-      chainId: 31337,
-    },
+    // localhost: {
+    //   url: "http://127.0.0.1:8545/",
+    //   chainId: 31337,
+    // },
   },
   etherscan: {
     apiKey: ETHERSCAN_API_KEY,
