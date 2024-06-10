@@ -1,13 +1,23 @@
 import type { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox-viem";
-require("dotenv").config();
+import { vars } from "hardhat/config";
+
+const ALCHEMY_SEPOLIA_ENDPOINT = vars.get("ALCHEMY_SEPOLIA_ENDPOINT");
+const PRIVATE_KEY = vars.get("PRIVATE_KEY");
+const ETHERSCAN_API_KEY = vars.get("ETHERSCAN_API_KEY");
+
+if (!ALCHEMY_SEPOLIA_ENDPOINT || !PRIVATE_KEY) {
+  throw new Error(
+    "Please set ALCHEMY_SEPOLIA_ENDPOINT and PRIVATE_KEY in your configuration variables."
+  );
+}
 
 const config: HardhatUserConfig = {
   solidity: "0.8.24",
   networks: {
     sepolia: {
-      url: process.env.ALCHEMY_SEPOLIA_ENDPOINT,
-      accounts: [process.env.PRIVATE_KEY!],
+      url: ALCHEMY_SEPOLIA_ENDPOINT,
+      accounts: [PRIVATE_KEY],
     },
     localhost: {
       url: "http://127.0.0.1:8545/",
@@ -15,8 +25,7 @@ const config: HardhatUserConfig = {
     },
   },
   etherscan: {
-    // Obtain one at https://etherscan.io/myapikey
-    apiKey: process.env.ETHERSCAN_API_KEY,
+    apiKey: ETHERSCAN_API_KEY,
   },
 };
 
