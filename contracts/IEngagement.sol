@@ -1,3 +1,5 @@
+pragma solidity ^0.8.24;
+
 interface IEngagement {
     event Issue(address indexed account, uint indexed tokenId);
     event Mint(address indexed account, uint indexed tokenId, uint amount);
