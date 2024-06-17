@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import "./IEngagement.sol";
 
 contract Engagement is IEngagement, ERC1155, AccessControl {
-    uint private _counter = 0;
+    uint private _counter;
     bytes32 public constant PROVIDER_ROLE = keccak256("PROVIDER_ROLE");
 
     mapping(uint => string) private _tokenMetadata;
@@ -33,10 +33,11 @@ contract Engagement is IEngagement, ERC1155, AccessControl {
     }
 
     function issue(string memory hash_) external {
-        _tokenMetadata[_counter] = hash_;
-        _mint(msg.sender, _counter, 1, "");
-        emit Issue(msg.sender, _counter);
-        _counter++;
+        uint counterCache = _counter;
+        _tokenMetadata[counterCache] = hash_;
+        _mint(msg.sender, counterCache, 1, "");
+        emit Issue(msg.sender, counterCache);
+        _counter = counterCache + 1;
     }
 
     function mint(
@@ -45,7 +46,7 @@ contract Engagement is IEngagement, ERC1155, AccessControl {
         uint amount,
         bytes memory data
     ) external override validTokenId(tokenId) {
-        if (balanceOf(account, tokenId) > 0) {
+        if (balanceOf(account, tokenId) >= 1) {
             revert MintLimit(account, tokenId);
         }
         _mint(account, tokenId, 1, data);
@@ -93,7 +94,9 @@ contract Engagement is IEngagement, ERC1155, AccessControl {
 
     function supportsInterface(
         bytes4 interfaceId
-    ) public view override(AccessControl, ERC1155) returns (bool) {}
+    ) public view override(AccessControl, ERC1155) returns (bool) {
+        return super.supportsInterface(interfaceId);
+    }
 
     function uri(
         uint tokenId
