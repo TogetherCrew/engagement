@@ -4,9 +4,12 @@ pragma solidity 0.8.26;
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 import "./IEngagement.sol";
 
 contract Engagement is IEngagement, ERC1155, AccessControl {
+    using ERC165Checker for address;
+
     uint private _counter;
     bytes32 public constant PROVIDER_ROLE = keccak256("PROVIDER_ROLE");
 
@@ -99,7 +102,10 @@ contract Engagement is IEngagement, ERC1155, AccessControl {
     function supportsInterface(
         bytes4 interfaceId
     ) public view override(AccessControl, ERC1155) returns (bool) {
-        return super.supportsInterface(interfaceId);
+        if (address(this).supportsERC165()) {
+            return super.supportsInterface(interfaceId);
+        }
+        return false;
     }
 
     function uri(
