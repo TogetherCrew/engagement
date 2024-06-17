@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.24;
+pragma solidity 0.8.26;
 
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
@@ -10,8 +10,8 @@ contract Engagement is IEngagement, ERC1155, AccessControl {
     uint private _counter;
     bytes32 public constant PROVIDER_ROLE = keccak256("PROVIDER_ROLE");
 
-    mapping(uint => string) private _tokenMetadata;
-    mapping(uint => string) private _scores;
+    mapping(uint tokenId => string metadata) private _tokenMetadata;
+    mapping(uint date => string cid) private _scores;
 
     constructor() ERC1155("") {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
@@ -25,6 +25,13 @@ contract Engagement is IEngagement, ERC1155, AccessControl {
 
     modifier validTokenId(uint tokenId) {
         _checkTokenId(tokenId);
+        _;
+    }
+
+    modifier onlyTokenOwner(address account, uint tokenId) {
+        if (account != msg.sender) {
+            revert NotAllowed(account, tokenId);
+        }
         _;
     }
 
@@ -57,10 +64,7 @@ contract Engagement is IEngagement, ERC1155, AccessControl {
         address account,
         uint tokenId,
         uint amount
-    ) external override validTokenId(tokenId) {
-        if (account != msg.sender) {
-            revert NotAllowed(account, tokenId);
-        }
+    ) external override validTokenId(tokenId) onlyTokenOwner(account, tokenId) {
         _burn(account, tokenId, 1);
         emit Burn(account, tokenId, 1);
     }
