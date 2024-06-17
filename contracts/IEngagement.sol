@@ -1,4 +1,5 @@
-pragma solidity ^0.8.24;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity 0.8.26;
 
 interface IEngagement {
     event Issue(address indexed account, uint indexed tokenId);
