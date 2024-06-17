@@ -99,9 +99,7 @@ contract Engagement is IEngagement, ERC1155, AccessControl {
     function supportsInterface(
         bytes4 interfaceId
     ) public view override(AccessControl, ERC1155) returns (bool) {
-        return
-            interfaceId == type(IEngagement).interfaceId ||
-            super.supportsInterface(interfaceId);
+        return super.supportsInterface(interfaceId);
     }
 
     function uri(
