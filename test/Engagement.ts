@@ -45,7 +45,7 @@ describe("Engagement", () => {
 
 			const counter0 = formatUnits(await contract.read.counter(), 0);
 
-			await contract.write.issue([hash]);
+			await contract.write.issue();
 
 			const counter1 = formatUnits(await contract.read.counter(), 0);
 
@@ -62,7 +62,7 @@ describe("Engagement", () => {
 
 			expect(balance0).to.be.equal(parseUnits("0", 0));
 
-			await contract.write.issue([hash], {
+			await contract.write.issue({
 				account: otherAccount.account.address,
 			});
 
@@ -79,7 +79,7 @@ describe("Engagement", () => {
 
 			const tokenId = await contract.read.counter();
 
-			const issueHash = await contract.write.issue([hash]);
+			const issueHash = await contract.write.issue();
 			const issueEvents = await contract.getEvents.Issue();
 
 			expect(issueEvents.length).to.be.equal(1);
@@ -101,7 +101,7 @@ describe("Engagement", () => {
 
 				const tokenId = await contract.read.counter();
 
-				await contract.write.issue([hash]);
+				await contract.write.issue();
 
 				expect(await contract.read.uri([tokenId])).to.be.equal(
 					`${DEFAULT_URI}/${tokenId}.json`,
@@ -136,7 +136,7 @@ describe("Engagement", () => {
 
 			tokenId = await contract.read.counter();
 			date = 1234567890;
-			await contract.write.issue([hash]);
+			await contract.write.issue();
 		});
 
 		describe("Mint", () => {
@@ -305,7 +305,7 @@ describe("Engagement", () => {
 					const date = 1234567890;
 					const tokenId = await contract.read.counter();
 
-					await contract.write.issue([hash]);
+					await contract.write.issue();
 
 					const scoresURL = await contract.read.getScores([
 						BigInt(date),

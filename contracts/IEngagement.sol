@@ -12,7 +12,7 @@ interface IEngagement {
 
     function counter() external view returns (uint);
 
-    function issue(string memory hash) external;
+    function issue() external;
 
     function mint(
         address account,
@@ -28,4 +28,6 @@ interface IEngagement {
         uint id,
         string memory account
     ) external view returns (string memory);
+
+    function updateBaseURI(string memory newURI) external;
 }

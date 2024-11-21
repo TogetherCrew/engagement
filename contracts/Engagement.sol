@@ -13,7 +13,7 @@ contract Engagement is IEngagement, ERC1155, AccessControl {
     uint private _counter;
     string private _tokenURI;
 
-    constructor(string memory tokenURI_) ERC1155("") {
+    constructor(string memory tokenURI_) ERC1155("") nonEmptyURI(tokenURI_) {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _tokenURI = tokenURI_;
     }
@@ -36,11 +36,16 @@ contract Engagement is IEngagement, ERC1155, AccessControl {
         _;
     }
 
+    modifier nonEmptyURI(string memory newUri) {
+        require(bytes(newUri).length > 0, "URI cannot be empty");
+        _;
+    }
+
     function counter() external view returns (uint) {
         return _counter;
     }
 
-    function issue(string memory hash_) external {
+    function issue() external {
         uint counterCache = _counter;
         _mint(msg.sender, counterCache, 1, "");
         emit Issue(msg.sender, counterCache);
@@ -96,6 +101,14 @@ contract Engagement is IEngagement, ERC1155, AccessControl {
             return super.supportsInterface(interfaceId);
         }
         return false;
+    }
+
+    function updateBaseURI(string memory newURI)
+        external
+        onlyRole(DEFAULT_ADMIN_ROLE)
+        nonEmptyURI(newURI)
+    {
+        _tokenURI = newURI;
     }
 
     function uri(
