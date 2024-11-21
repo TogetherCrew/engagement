@@ -13,7 +13,8 @@ contract Engagement is IEngagement, ERC1155, AccessControl {
     uint private _counter;
     string private _tokenURI;
 
-    constructor(string memory tokenURI_) ERC1155("") nonEmptyURI(tokenURI_) {
+    constructor(string memory tokenURI_) ERC1155("") {
+        requireNonEmptyURI(tokenURI_);
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _tokenURI = tokenURI_;
     }
@@ -21,6 +22,12 @@ contract Engagement is IEngagement, ERC1155, AccessControl {
     function _checkTokenId(uint tokenId) private view {
         if (tokenId >= _counter) {
             revert NotFound(tokenId);
+        }
+    }
+
+    function requireNonEmptyURI(string memory newUri) internal pure {
+        if (bytes(newUri).length == 0) {
+            revert URIEmpty("URI cannot be empty");
         }
     }
 
@@ -33,11 +40,6 @@ contract Engagement is IEngagement, ERC1155, AccessControl {
         if (account != msg.sender) {
             revert NotAllowed(account, tokenId);
         }
-        _;
-    }
-
-    modifier nonEmptyURI(string memory newUri) {
-        require(bytes(newUri).length > 0, "URI cannot be empty");
         _;
     }
 
@@ -103,11 +105,9 @@ contract Engagement is IEngagement, ERC1155, AccessControl {
         return false;
     }
 
-    function updateBaseURI(string memory newURI)
-        external
-        onlyRole(DEFAULT_ADMIN_ROLE)
-        nonEmptyURI(newURI)
-    {
+    function updateBaseURI(string memory newURI) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        requireNonEmptyURI(newURI);
+        emit BaseURIUpdated(_tokenURI, newURI);
         _tokenURI = newURI;
     }
 

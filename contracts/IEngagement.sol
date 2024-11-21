@@ -5,10 +5,12 @@ interface IEngagement {
     event Issue(address indexed account, uint indexed tokenId);
     event Mint(address indexed account, uint indexed tokenId, uint amount);
     event Burn(address indexed account, uint indexed tokenId, uint amount);
+    event BaseURIUpdated(string oldURI, string newURI);
 
     error NotFound(uint tokenId);
     error MintLimit(address account, uint tokenId);
     error NotAllowed(address account, uint tokenId);
+    error URIEmpty(string message);
 
     function counter() external view returns (uint);
 

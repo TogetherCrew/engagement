@@ -3,7 +3,6 @@ import { expect } from "chai";
 import hre from "hardhat";
 import { formatUnits, getAddress, parseUnits } from "viem";
 
-const hash = "0x0";
 const DEFAULT_URI = "https://api.example.com";
 
 describe("Engagement", () => {
@@ -23,20 +22,29 @@ describe("Engagement", () => {
 	}
 
 	describe("Deployment", () => {
-		it("Shuld have counter equal 0", async () => {
-			const { contract } = await loadFixture(deployFixture);
-
-			expect(await contract.read.counter()).to.be.equal(parseUnits("0", 0));
-		});
-
-		it("Should have deployer as an Admin", async () => {
-			const { contract, deployer } = await loadFixture(deployFixture);
-
-			const adminRole = await contract.read.DEFAULT_ADMIN_ROLE();
-
-			expect(await contract.read.hasRole([adminRole, deployer.account.address]))
-				.to.be.true;
-		});
+		describe("Success", () => {
+			it("Shuld have counter equal 0", async () => {
+				const { contract } = await loadFixture(deployFixture);
+	
+				expect(await contract.read.counter()).to.be.equal(parseUnits("0", 0));
+			});
+	
+			it("Should have deployer as an Admin", async () => {
+				const { contract, deployer } = await loadFixture(deployFixture);
+	
+				const adminRole = await contract.read.DEFAULT_ADMIN_ROLE();
+	
+				expect(await contract.read.hasRole([adminRole, deployer.account.address]))
+					.to.be.true;
+			});
+		})
+		describe("Revert", () => {
+			it("Should revert deployment if URI is empty", async () => {
+				await expect(
+					hre.viem.deployContract("Engagement", [""])
+				).to.be.rejectedWith("URIEmpty(\"URI cannot be empty\")");
+			});
+		})
 	});
 
 	describe("Issue", () => {
@@ -92,6 +100,55 @@ describe("Engagement", () => {
 				getAddress(deployer.account.address),
 			);
 		});
+	});
+
+	describe("Update Base URI", () => {
+		describe("Success", () => {
+			it("Should allow admin to update base URI", async () => {
+				const { contract, deployer } = await loadFixture(deployFixture);
+				const newURI = "https://new-api.example.com";
+			
+				await contract.write.issue({ account: deployer.account.address });
+			
+				await contract.write.updateBaseURI([newURI], { account: deployer.account.address });
+			
+				expect(await contract.read.uri([parseUnits("0", 0)])).to.be.equal(`${newURI}/0.json`);
+			});
+	
+			it("Should emit BaseURIUpdated event on URI change", async () => {
+				const { contract, deployer } = await loadFixture(deployFixture);
+				const newURI = "https://new-api.example.com";
+	
+				const updateTx = await contract.write.updateBaseURI([newURI], {
+					account: deployer.account.address,
+				});
+	
+				const baseURIEvents = await contract.getEvents.BaseURIUpdated();
+	
+				expect(baseURIEvents.length).to.be.equal(1);
+	
+				const event = baseURIEvents[0];
+				expect(event.eventName).to.be.equal("BaseURIUpdated");
+				expect(event.args.oldURI).to.be.equal(DEFAULT_URI);
+				expect(event.args.newURI).to.be.equal(newURI);
+			});
+		})
+
+		describe("Revert", () => {
+			it("Should revert if non-admin tries to update URI", async () => {
+				const { contract, otherAccount } = await loadFixture(deployFixture);
+			
+				await expect(
+					contract.write.updateBaseURI(["https://new-api.example.com"], {
+						account: otherAccount.account.address,
+					})
+				).to.be.rejectedWith(
+					`AccessControlUnauthorizedAccount("${getAddress(
+						otherAccount.account.address
+					)}", "0x0000000000000000000000000000000000000000000000000000000000000000")`
+				);
+			});
+		})
 	});
 
 	describe("Uri", () => {
