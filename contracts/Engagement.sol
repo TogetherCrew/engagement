@@ -11,13 +11,15 @@ contract Engagement is IEngagement, ERC1155, AccessControl {
     using ERC165Checker for address;
 
     uint private _counter;
-    bytes32 public constant PROVIDER_ROLE = keccak256("PROVIDER_ROLE");
+    string private _tokenURI;
+    // bytes32 public constant PROVIDER_ROLE = keccak256("PROVIDER_ROLE");
 
-    mapping(uint tokenId => string metadata) private _tokenMetadata;
-    mapping(uint date => string cid) private _scores;
+    // mapping(uint tokenId => string metadata) private _tokenMetadata;
+    // mapping(uint date => string cid) private _scores;
 
-    constructor() ERC1155("") {
+    constructor(string memory tokenURI_) ERC1155("") {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _tokenURI = tokenURI_;
     }
 
     function _checkTokenId(uint tokenId) private view {
@@ -44,7 +46,7 @@ contract Engagement is IEngagement, ERC1155, AccessControl {
 
     function issue(string memory hash_) external {
         uint counterCache = _counter;
-        _tokenMetadata[counterCache] = hash_;
+        // _tokenMetadata[counterCache] = hash_;
         _mint(msg.sender, counterCache, 1, "");
         emit Issue(msg.sender, counterCache);
         _counter = counterCache + 1;
@@ -72,7 +74,7 @@ contract Engagement is IEngagement, ERC1155, AccessControl {
         emit Burn(account, tokenId, 1);
     }
 
-    function getScores(
+   function getScores(
         uint date,
         uint id,
         string memory account
@@ -80,8 +82,9 @@ contract Engagement is IEngagement, ERC1155, AccessControl {
         return
             string(
                 abi.encodePacked(
-                    "ipfs://",
-                    _scores[date],
+                    _tokenURI,
+                    "/",
+                    Strings.toString(date),
                     "/",
                     Strings.toString(id),
                     "/",
@@ -91,13 +94,13 @@ contract Engagement is IEngagement, ERC1155, AccessControl {
             );
     }
 
-    function updateScores(
-        uint date,
-        string memory cid
-    ) external override onlyRole(PROVIDER_ROLE) {
-        _scores[date] = cid;
-        emit UpdateScores(msg.sender, date, cid);
-    }
+    // function updateScores(
+    //     uint date,
+    //     string memory cid
+    // ) external override onlyRole(PROVIDER_ROLE) {
+    //     _scores[date] = cid;
+    //     emit UpdateScores(msg.sender, date, cid);
+    // }
 
     function supportsInterface(
         bytes4 interfaceId
@@ -113,7 +116,7 @@ contract Engagement is IEngagement, ERC1155, AccessControl {
     ) public view override validTokenId(tokenId) returns (string memory) {
         return
             string(
-                abi.encodePacked("ipfs://", _tokenMetadata[tokenId], ".json")
+                abi.encodePacked(_tokenURI,Strings.toString(tokenId),".json")
             );
     }
 }
