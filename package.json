@@ -30,7 +30,7 @@
     "compile": "npx hardhat compile",
     "test": "npx hardhat test",
     "coverage": "SOLIDITY_COVERAGE=true npx hardhat coverage",
-    "lint": "npx @biomejs/biome lint ./test ./ignition/modules --skip=suspicious/noExplicitAny",
+    "lint": "npx @biomejs/biome lint ./test ./ignition/modules",
     "format": "npx @biomejs/biome format --write ./test ./ignition/modules",
     "ci": "npx @biomejs/biome ci ./test ./ignition/modules",
     "deploy": "npx hardhat ignition deploy ./ignition/modules/Engagement.ts"

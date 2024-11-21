@@ -12,10 +12,6 @@ contract Engagement is IEngagement, ERC1155, AccessControl {
 
     uint private _counter;
     string private _tokenURI;
-    // bytes32 public constant PROVIDER_ROLE = keccak256("PROVIDER_ROLE");
-
-    // mapping(uint tokenId => string metadata) private _tokenMetadata;
-    // mapping(uint date => string cid) private _scores;
 
     constructor(string memory tokenURI_) ERC1155("") {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
@@ -46,7 +42,6 @@ contract Engagement is IEngagement, ERC1155, AccessControl {
 
     function issue(string memory hash_) external {
         uint counterCache = _counter;
-        // _tokenMetadata[counterCache] = hash_;
         _mint(msg.sender, counterCache, 1, "");
         emit Issue(msg.sender, counterCache);
         _counter = counterCache + 1;
@@ -93,14 +88,6 @@ contract Engagement is IEngagement, ERC1155, AccessControl {
                 )
             );
     }
-
-    // function updateScores(
-    //     uint date,
-    //     string memory cid
-    // ) external override onlyRole(PROVIDER_ROLE) {
-    //     _scores[date] = cid;
-    //     emit UpdateScores(msg.sender, date, cid);
-    // }
 
     function supportsInterface(
         bytes4 interfaceId

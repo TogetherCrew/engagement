@@ -5,7 +5,6 @@ interface IEngagement {
     event Issue(address indexed account, uint indexed tokenId);
     event Mint(address indexed account, uint indexed tokenId, uint amount);
     event Burn(address indexed account, uint indexed tokenId, uint amount);
-    // event UpdateScores(address indexed account, uint indexed date, string cid);
 
     error NotFound(uint tokenId);
     error MintLimit(address account, uint tokenId);
@@ -29,6 +28,4 @@ interface IEngagement {
         uint id,
         string memory account
     ) external view returns (string memory);
-
-    // function updateScores(uint date, string memory cid) external;
 }
