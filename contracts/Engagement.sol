@@ -103,7 +103,7 @@ contract Engagement is IEngagement, ERC1155, AccessControl {
     ) public view override validTokenId(tokenId) returns (string memory) {
         return
             string(
-                abi.encodePacked(_tokenURI,Strings.toString(tokenId),".json")
+                abi.encodePacked(_tokenURI,"/",Strings.toString(tokenId),".json")
             );
     }
 }

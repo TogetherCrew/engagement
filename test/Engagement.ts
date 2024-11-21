@@ -104,7 +104,7 @@ describe("Engagement", () => {
 				await contract.write.issue([hash]);
 
 				expect(await contract.read.uri([tokenId])).to.be.equal(
-					`${DEFAULT_URI}${tokenId}.json`,
+					`${DEFAULT_URI}/${tokenId}.json`,
 				);
 			});
 		});
