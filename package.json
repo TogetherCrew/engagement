@@ -33,6 +33,6 @@
     "lint": "npx @biomejs/biome lint ./test ./ignition/modules --skip=suspicious/noExplicitAny",
     "format": "npx @biomejs/biome format --write ./test ./ignition/modules",
     "ci": "npx @biomejs/biome ci ./test ./ignition/modules",
-    "deploy": "npx hardhat ignition deploy ./ignition/modules/Engagement.ts"
+    "deploy:localhost": "npx hardhat run ./scripts/deploy.ts --network localhost"
   }
 }
