@@ -137,17 +137,8 @@ Contributions are welcome! Please follow these steps:
 
 ---
 
-## **License**
-This project is licensed under the MIT License. See the `LICENSE` file for details.
-
----
-
 ## **Acknowledgments**
 - **OpenZeppelin**: For providing secure and reusable smart contract components.
 - **Hardhat Team**: For building a robust Ethereum development environment.
 - **OCI Platform**: For enabling seamless identity and reputation management.
 - **TogetherCrew**: For driving innovation in community engagement and blockchain-based solutions.
-
----
-
-Let me know if you need further customization or additional sections!
