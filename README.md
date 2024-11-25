@@ -9,6 +9,13 @@ The **Engagement Contract** is a blockchain-based solution for communities to ma
 
 This project is built with Solidity, Hardhat, and OpenZeppelin libraries, ensuring secure and efficient smart contract development.
 
+## **Contract Addresses**
+
+| Address                                                                                         | Network                  |
+|-------------------------------------------------------------------------------------------------|--------------------------|
+| https://sepolia.etherscan.io/address/0x8Ff1dd3967A87C1Eb46bd60B2BBF9D7eAA987c1B                 | Sepolia                  |
+| https://sepolia-optimism.etherscan.io/address/0x2cb7383D194d820FabC025C94b0265b58777CEFf#code   | Optimisim Sepolia        |
+
 ---
 
 ## **Features**
