@@ -76,26 +76,6 @@ contract Engagement is IEngagement, ERC1155, AccessControl {
         emit Burn(account, tokenId, 1);
     }
 
-   function getScores(
-        uint date,
-        uint id,
-        string memory account
-    ) external view override validTokenId(id) returns (string memory) {
-        return
-            string(
-                abi.encodePacked(
-                    _tokenURI,
-                    "/",
-                    Strings.toString(date),
-                    "/",
-                    Strings.toString(id),
-                    "/",
-                    account,
-                    ".json"
-                )
-            );
-    }
-
     function supportsInterface(
         bytes4 interfaceId
     ) public view override(AccessControl, ERC1155) returns (bool) {
@@ -112,11 +92,12 @@ contract Engagement is IEngagement, ERC1155, AccessControl {
     }
 
     function uri(
-        uint tokenId
-    ) public view override validTokenId(tokenId) returns (string memory) {
+        uint tokenId,
+        string memory account
+    ) public view validTokenId(tokenId) returns (string memory) {
         return
             string(
-                abi.encodePacked(_tokenURI,"/",Strings.toString(tokenId),".json")
+                abi.encodePacked(_tokenURI,"/api/v1/nft/",Strings.toString(tokenId),"/",account,"/reputation-score")
             );
     }
 }

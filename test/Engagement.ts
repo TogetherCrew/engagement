@@ -6,6 +6,8 @@ import { formatUnits, getAddress, parseUnits } from "viem";
 const DEFAULT_URI = "https://api.example.com";
 
 describe("Engagement", () => {
+
+	  
 	async function deployFixture() {
 		const [deployer, otherAccount] = await hre.viem.getWalletClients();
 
@@ -108,17 +110,25 @@ describe("Engagement", () => {
 			it("Should allow admin to update base URI", async () => {
 				const { contract, deployer } = await loadFixture(deployFixture);
 				const newURI = "https://new-api.example.com";
-
-				await contract.write.issue({ account: deployer.account.address });
-
+			  
+				await contract.write.issue({ account: deployer.account.address });		
+			  
 				await contract.write.updateBaseURI([newURI], {
-					account: deployer.account.address,
+				  account: deployer.account.address,
 				});
-
-				expect(await contract.read.uri([parseUnits("0", 0)])).to.be.equal(
-					`${newURI}/0.json`,
+			  
+				const updatedURI = await contract.read.uri([
+				  parseUnits("0", 0),
+				  getAddress(deployer.account.address),
+				]);
+			  
+				expect(updatedURI).to.be.equal(
+				  `${newURI}/api/v1/nft/0/${getAddress(
+					deployer.account.address,
+				  )}/reputation-score`,
 				);
-			});
+			  });
+			  
 
 			it("Should emit BaseURIUpdated event on URI change", async () => {
 				const { contract, deployer } = await loadFixture(deployFixture);
@@ -159,24 +169,24 @@ describe("Engagement", () => {
 	describe("Uri", () => {
 		describe("Success", () => {
 			it("Should return formatted Uri", async () => {
-				const { contract } = await loadFixture(deployFixture);
+				const { contract, otherAccount } = await loadFixture(deployFixture);
 
 				const tokenId = await contract.read.counter();
 
 				await contract.write.issue();
 
-				expect(await contract.read.uri([tokenId])).to.be.equal(
-					`${DEFAULT_URI}/${tokenId}.json`,
+				expect(await contract.read.uri([tokenId,getAddress(otherAccount.account.address)])).to.be.equal(
+					`${DEFAULT_URI}/api/v1/nft/${tokenId}/${getAddress(otherAccount.account.address)}/reputation-score`,
 				);
 			});
 		});
 
 		describe("Revert", () => {
 			it("Should revert with NotFound (token doesn't exist)", async () => {
-				const { contract } = await loadFixture(deployFixture);
+				const { contract,otherAccount } = await loadFixture(deployFixture);
 				const tokenId = parseUnits("999", 0);
 
-				await expect(contract.read.uri([tokenId])).to.be.rejectedWith(
+				await expect(contract.read.uri([tokenId,getAddress(otherAccount.account.address)])).to.be.rejectedWith(
 					"NotFound(999)",
 				);
 			});
@@ -354,45 +364,6 @@ describe("Engagement", () => {
 							],
 							{ account: otherAccount.account.address },
 						),
-					).to.be.rejectedWith("NotFound(999)");
-				});
-			});
-		});
-
-		describe("getScores", () => {
-			describe("Success", () => {
-				it("Should return the correct scores URL", async () => {
-					const { contract, otherAccount } = await loadFixture(deployFixture);
-
-					const date = 1234567890;
-					const tokenId = await contract.read.counter();
-
-					await contract.write.issue();
-
-					const scoresURL = await contract.read.getScores([
-						BigInt(date),
-						tokenId,
-						getAddress(otherAccount.account.address),
-					]);
-
-					expect(scoresURL).to.be.equal(
-						`${DEFAULT_URI}/${date}/${tokenId}/${getAddress(
-							otherAccount.account.address,
-						)}.json`,
-					);
-				});
-			});
-
-			describe("Revert", () => {
-				it("Should revert with NotFound (token doesn't exist)", async () => {
-					const invalidTokenId = parseUnits("999", 0);
-
-					await expect(
-						contract.read.getScores([
-							date,
-							invalidTokenId,
-							getAddress(otherAccount.account.address),
-						]),
 					).to.be.rejectedWith("NotFound(999)");
 				});
 			});

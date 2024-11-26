@@ -25,11 +25,5 @@ interface IEngagement {
 
     function burn(address account, uint tokenId, uint amount) external;
 
-    function getScores(
-        uint date,
-        uint id,
-        string memory account
-    ) external view returns (string memory);
-
     function updateBaseURI(string memory newURI) external;
 }
