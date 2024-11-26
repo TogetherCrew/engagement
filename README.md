@@ -13,8 +13,8 @@ This project is built with Solidity, Hardhat, and OpenZeppelin libraries, ensuri
 
 | Address                                                                                         | Network                  |
 |-------------------------------------------------------------------------------------------------|--------------------------|
-| https://sepolia.etherscan.io/address/0x8Ff1dd3967A87C1Eb46bd60B2BBF9D7eAA987c1B                 | Sepolia                  |
-| https://sepolia-optimism.etherscan.io/address/0xd826769f1844CC83A16923D2AEF8a479E62Da732#code   | Optimisim Sepolia        |
+| N/A                                                                                             | Sepolia                  |
+| https://sepolia-optimism.etherscan.io/address/0x843dd068997bf28B11FDfF073AeeD080DE41B287#code   | Optimisim Sepolia        |
 
 ---
 
@@ -53,8 +53,8 @@ This project is built with Solidity, Hardhat, and OpenZeppelin libraries, ensuri
 
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/your-username/engagement-contract.git
-   cd engagement-contract
+   git clone https://github.com/your-username/engagement.git
+   cd engagement
    ```
 
 2. **Install Dependencies**:

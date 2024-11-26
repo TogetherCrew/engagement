@@ -43,6 +43,13 @@ contract Engagement is IEngagement, ERC1155, AccessControl {
         _;
     }
 
+    modifier nonEmptyAccount(string memory account) {
+        if (bytes(account).length == 0) {
+            revert EmptyAccountNotAllowed("Account cannot be empty");
+        }
+        _;
+    }
+
     function counter() external view returns (uint) {
         return _counter;
     }
@@ -94,7 +101,7 @@ contract Engagement is IEngagement, ERC1155, AccessControl {
     function uri(
         uint tokenId,
         string memory account
-    ) public view validTokenId(tokenId) returns (string memory) {
+    ) public view validTokenId(tokenId) nonEmptyAccount(account) returns (string memory) {
         return
             string(
                 abi.encodePacked(_tokenURI,"/api/v1/nft/",Strings.toString(tokenId),"/",account,"/reputation-score")

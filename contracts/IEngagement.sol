@@ -11,6 +11,7 @@ interface IEngagement {
     error MintLimit(address account, uint tokenId);
     error NotAllowed(address account, uint tokenId);
     error URIEmpty(string message);
+    error EmptyAccountNotAllowed(string message);
 
     function counter() external view returns (uint);
 

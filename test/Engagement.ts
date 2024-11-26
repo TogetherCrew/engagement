@@ -190,6 +190,18 @@ describe("Engagement", () => {
 					"NotFound(999)",
 				);
 			});
+			it("Should revert if the account is empty", async () => {
+				const { contract } = await loadFixture(deployFixture);
+
+				const tokenId = await contract.read.counter();
+
+				await contract.write.issue();
+			
+				await expect(contract.read.uri([tokenId, ""])).to.be.rejectedWith(
+					'EmptyAccountNotAllowed("Account cannot be empty")'
+				);
+			});
+			
 		});
 	});
 
