@@ -35,6 +35,7 @@
 		"ci": "npx @biomejs/biome ci ./test ./ignition/modules",
 		"deploy:localhost": "npx hardhat run ./scripts/deploy.ts --network localhost",
 		"deploy:sepolia": "npx hardhat run ./scripts/deploy.ts --network sepolia",
-		"deploy:optimismSepolia": "npx hardhat run ./scripts/deploy.ts --network optimismSepolia"
+		"deploy:optimismSepolia": "npx hardhat run ./scripts/deploy.ts --network optimismSepolia",
+		"deploy:baseSepolia": "npx hardhat run ./scripts/deploy.ts --network baseSepolia"
 	}
 }
