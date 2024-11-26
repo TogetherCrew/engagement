@@ -11,18 +11,23 @@ contract Engagement is IEngagement, ERC1155, AccessControl {
     using ERC165Checker for address;
 
     uint private _counter;
-    bytes32 public constant PROVIDER_ROLE = keccak256("PROVIDER_ROLE");
+    string private _tokenURI;
 
-    mapping(uint tokenId => string metadata) private _tokenMetadata;
-    mapping(uint date => string cid) private _scores;
-
-    constructor() ERC1155("") {
+    constructor(string memory tokenURI_) ERC1155("") {
+        requireNonEmptyURI(tokenURI_);
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _tokenURI = tokenURI_;
     }
 
     function _checkTokenId(uint tokenId) private view {
         if (tokenId >= _counter) {
             revert NotFound(tokenId);
+        }
+    }
+
+    function requireNonEmptyURI(string memory newUri) internal pure {
+        if (bytes(newUri).length == 0) {
+            revert URIEmpty("URI cannot be empty");
         }
     }
 
@@ -38,13 +43,19 @@ contract Engagement is IEngagement, ERC1155, AccessControl {
         _;
     }
 
+    modifier nonEmptyAccount(string memory account) {
+        if (bytes(account).length == 0) {
+            revert EmptyAccountNotAllowed("Account cannot be empty");
+        }
+        _;
+    }
+
     function counter() external view returns (uint) {
         return _counter;
     }
 
-    function issue(string memory hash_) external {
+    function issue() external {
         uint counterCache = _counter;
-        _tokenMetadata[counterCache] = hash_;
         _mint(msg.sender, counterCache, 1, "");
         emit Issue(msg.sender, counterCache);
         _counter = counterCache + 1;
@@ -72,33 +83,6 @@ contract Engagement is IEngagement, ERC1155, AccessControl {
         emit Burn(account, tokenId, 1);
     }
 
-    function getScores(
-        uint date,
-        uint id,
-        string memory account
-    ) external view override validTokenId(id) returns (string memory) {
-        return
-            string(
-                abi.encodePacked(
-                    "ipfs://",
-                    _scores[date],
-                    "/",
-                    Strings.toString(id),
-                    "/",
-                    account,
-                    ".json"
-                )
-            );
-    }
-
-    function updateScores(
-        uint date,
-        string memory cid
-    ) external override onlyRole(PROVIDER_ROLE) {
-        _scores[date] = cid;
-        emit UpdateScores(msg.sender, date, cid);
-    }
-
     function supportsInterface(
         bytes4 interfaceId
     ) public view override(AccessControl, ERC1155) returns (bool) {
@@ -108,12 +92,19 @@ contract Engagement is IEngagement, ERC1155, AccessControl {
         return false;
     }
 
+    function updateBaseURI(string memory newURI) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        requireNonEmptyURI(newURI);
+        emit BaseURIUpdated(_tokenURI, newURI);
+        _tokenURI = newURI;
+    }
+
     function uri(
-        uint tokenId
-    ) public view override validTokenId(tokenId) returns (string memory) {
+        uint tokenId,
+        string memory account
+    ) public view validTokenId(tokenId) nonEmptyAccount(account) returns (string memory) {
         return
             string(
-                abi.encodePacked("ipfs://", _tokenMetadata[tokenId], ".json")
+                abi.encodePacked(_tokenURI,"/api/v1/nft/",Strings.toString(tokenId),"/",account,"/reputation-score")
             );
     }
 }

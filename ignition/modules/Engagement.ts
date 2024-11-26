@@ -1,9 +1,11 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 
 const EngagementModule = buildModule("EngagementModule", (m) => {
-  const engagement = m.contract("Engagement", [], {});
+	const uri = m.getParameter("uri");
 
-  return { engagement };
+	const engagement = m.contract("Engagement", [uri], {});
+
+	return { engagement };
 });
 
 export default EngagementModule;

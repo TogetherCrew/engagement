@@ -3,421 +3,382 @@ import { expect } from "chai";
 import hre from "hardhat";
 import { formatUnits, getAddress, parseUnits } from "viem";
 
-const hash = "SOME_RANDOM_HASH";
+const DEFAULT_URI = "https://api.example.com";
 
-describe("Engage", function () {
-  // We define a fixture to reuse the same setup in every test.
-  // We use loadFixture to run this setup once, snapshot that state,
-  // and reset Hardhat Network to that snapshot in every test.
-  async function deployFixture() {
-    // Contracts are deployed using the first signer/account by default
-    const [deployer, provider, otherAccount] =
-      await hre.viem.getWalletClients();
+describe("Engagement", () => {
 
-    const contract = await hre.viem.deployContract("Engagement");
+	  
+	async function deployFixture() {
+		const [deployer, otherAccount] = await hre.viem.getWalletClients();
 
-    const publicClient = await hre.viem.getPublicClient();
+		const contract = await hre.viem.deployContract("Engagement", [DEFAULT_URI]);
 
-    await contract.write.grantRole([
-      await contract.read.PROVIDER_ROLE(),
-      provider.account.address,
-    ]);
+		const publicClient = await hre.viem.getPublicClient();
 
-    return {
-      contract,
-      hash,
-      deployer,
-      provider,
-      otherAccount,
-      publicClient,
-    };
-  }
+		return {
+			contract,
+			deployer,
+			otherAccount,
+			publicClient,
+		};
+	}
 
-  describe("Deployment", function () {
-    it("Should have counter equal 0", async function () {
-      const { contract } = await loadFixture(deployFixture);
+	describe("Deployment", () => {
+		describe("Success", () => {
+			it("Shuld have counter equal 0", async () => {
+				const { contract } = await loadFixture(deployFixture);
 
-      expect(await contract.read.counter()).to.be.equal(parseUnits("0", 0));
-    });
-    it("Should have deployer as an Admin", async function () {
-      const { contract, deployer } = await loadFixture(deployFixture);
+				expect(await contract.read.counter()).to.be.equal(parseUnits("0", 0));
+			});
 
-      const adminRole = await contract.read.DEFAULT_ADMIN_ROLE();
+			it("Should have deployer as an Admin", async () => {
+				const { contract, deployer } = await loadFixture(deployFixture);
 
-      expect(await contract.read.hasRole([adminRole, deployer.account.address]))
-        .to.be.true;
-    });
+				const adminRole = await contract.read.DEFAULT_ADMIN_ROLE();
 
-    it("Should have a PROVIDER_ROLE", async function () {
-      const { contract } = await loadFixture(deployFixture);
+				expect(
+					await contract.read.hasRole([adminRole, deployer.account.address]),
+				).to.be.true;
+			});
+		});
+		describe("Revert", () => {
+			it("Should revert deployment if URI is empty", async () => {
+				await expect(
+					hre.viem.deployContract("Engagement", [""]),
+				).to.be.rejectedWith('URIEmpty("URI cannot be empty")');
+			});
+		});
+	});
 
-      expect(await contract.read.PROVIDER_ROLE()).to.be.exist;
-    });
-  });
+	describe("Issue", () => {
+		it("Should increment counter by 1", async () => {
+			const { contract } = await loadFixture(deployFixture);
 
-  describe("Issue", function () {
-    it("Should increment counter by 1", async function () {
-      const { contract, hash } = await loadFixture(deployFixture);
+			const counter0 = formatUnits(await contract.read.counter(), 0);
 
-      const counter0 = formatUnits(await contract.read.counter(), 0);
+			await contract.write.issue();
 
-      await contract.write.issue([hash]);
+			const counter1 = formatUnits(await contract.read.counter(), 0);
 
-      const counter1 = formatUnits(await contract.read.counter(), 0);
+			expect(Number(counter1)).to.be.equal(Number(counter0) + 1);
+		});
+		it("Should have an account balance of 1", async () => {
+			const { contract, otherAccount } = await loadFixture(deployFixture);
 
-      expect(Number(counter1)).to.be.equal(Number(counter0) + 1);
-    });
+			const counter = await contract.read.counter();
+			const balance0 = await contract.read.balanceOf([
+				getAddress(otherAccount.account.address),
+				counter,
+			]);
 
-    it("Should have an account balance of 1", async function () {
-      const { contract, otherAccount, hash } = await loadFixture(deployFixture);
+			expect(balance0).to.be.equal(parseUnits("0", 0));
 
-      const counter = await contract.read.counter();
-      const balance0 = await contract.read.balanceOf([
-        getAddress(otherAccount.account.address),
-        counter,
-      ]);
+			await contract.write.issue({
+				account: otherAccount.account.address,
+			});
 
-      expect(balance0).to.be.equal(parseUnits("0", 0));
+			const balance1 = await contract.read.balanceOf([
+				getAddress(otherAccount.account.address),
+				counter,
+			]);
 
-      await contract.write.issue([hash], {
-        account: otherAccount.account.address,
-      });
+			expect(balance1).to.be.equal(parseUnits("1", 0));
+		});
 
-      const balance1 = await contract.read.balanceOf([
-        getAddress(otherAccount.account.address),
-        counter,
-      ]);
+		it("Should emit Issue event", async () => {
+			const { contract, deployer } = await loadFixture(deployFixture);
 
-      expect(balance1).to.be.equal(parseUnits("1", 0));
-    });
+			const tokenId = await contract.read.counter();
 
-    it("Should emit Issue event", async function () {
-      const { contract, deployer, hash } = await loadFixture(deployFixture);
+			const issueHash = await contract.write.issue();
+			const issueEvents = await contract.getEvents.Issue();
 
-      const tokenId = await contract.read.counter();
+			expect(issueEvents.length).to.be.equal(1);
 
-      const issueHash = await contract.write.issue([hash]);
-      const issueEvents = await contract.getEvents.Issue();
+			const event = issueEvents[0];
+			expect(event.eventName).to.be.equal("Issue");
+			expect(event.transactionHash).to.be.equal(issueHash);
+			expect(event.args.tokenId).to.be.equal(tokenId);
+			expect(event.args.account).to.be.equal(
+				getAddress(deployer.account.address),
+			);
+		});
+	});
 
-      expect(issueEvents.length).to.be.equal(1);
+	describe("Update Base URI", () => {
+		describe("Success", () => {
+			it("Should allow admin to update base URI", async () => {
+				const { contract, deployer } = await loadFixture(deployFixture);
+				const newURI = "https://new-api.example.com";
+			  
+				await contract.write.issue({ account: deployer.account.address });		
+			  
+				await contract.write.updateBaseURI([newURI], {
+				  account: deployer.account.address,
+				});
+			  
+				const updatedURI = await contract.read.uri([
+				  parseUnits("0", 0),
+				  getAddress(deployer.account.address),
+				]);
+			  
+				expect(updatedURI).to.be.equal(
+				  `${newURI}/api/v1/nft/0/${getAddress(
+					deployer.account.address,
+				  )}/reputation-score`,
+				);
+			  });
+			  
 
-      const event = issueEvents[0];
-      expect(event.eventName).to.be.equal("Issue");
-      expect(event.transactionHash).to.be.equal(issueHash);
-      expect(event.args.tokenId).to.be.equal(tokenId);
-      expect(event.args.account).to.be.equal(
-        getAddress(deployer.account.address)
-      );
-    });
-  });
+			it("Should emit BaseURIUpdated event on URI change", async () => {
+				const { contract, deployer } = await loadFixture(deployFixture);
+				const newURI = "https://new-api.example.com";
 
-  describe("Uri", function () {
-    describe("Success", async function () {
-      it("Should return formatted Uri", async function () {
-        const { contract, hash } = await loadFixture(deployFixture);
+				const updateTx = await contract.write.updateBaseURI([newURI], {
+					account: deployer.account.address,
+				});
 
-        const tokenId = await contract.read.counter();
+				const baseURIEvents = await contract.getEvents.BaseURIUpdated();
 
-        await contract.write.issue([hash]);
+				expect(baseURIEvents.length).to.be.equal(1);
 
-        expect(await contract.read.uri([tokenId])).to.be.equal(
-          `ipfs://${hash}.json`
-        );
-      });
-    });
-    describe("Revert", async function () {
-      it("Should revert with NotFound (token doesn't exist)", async function () {
-        const { contract } = await loadFixture(deployFixture);
-        const tokenId = parseUnits("999", 0);
+				const event = baseURIEvents[0];
+				expect(event.eventName).to.be.equal("BaseURIUpdated");
+				expect(event.args.oldURI).to.be.equal(DEFAULT_URI);
+				expect(event.args.newURI).to.be.equal(newURI);
+			});
+		});
 
-        await expect(contract.read.uri([tokenId])).to.be.rejectedWith(
-          "NotFound(999)"
-        );
-      });
-    });
-  });
+		describe("Revert", () => {
+			it("Should revert if non-admin tries to update URI", async () => {
+				const { contract, otherAccount } = await loadFixture(deployFixture);
 
-  describe("Wrapper", function () {
-    let amount = parseUnits("1", 0);
-    const data = "0x0";
-    let tokenId: any;
-    let contract: any;
-    let otherAccount: any;
-    const date = parseUnits("1", 0);
-    const cid = "SOME_RANDOM_CID";
-    let provider: any;
+				await expect(
+					contract.write.updateBaseURI(["https://new-api.example.com"], {
+						account: otherAccount.account.address,
+					}),
+				).to.be.rejectedWith(
+					`AccessControlUnauthorizedAccount("${getAddress(
+						otherAccount.account.address,
+					)}", "0x0000000000000000000000000000000000000000000000000000000000000000")`,
+				);
+			});
+		});
+	});
 
-    beforeEach(async function () {
-      const fixture = await loadFixture(deployFixture);
-      contract = fixture.contract;
-      otherAccount = fixture.otherAccount;
-      provider = fixture.provider;
+	describe("Uri", () => {
+		describe("Success", () => {
+			it("Should return formatted Uri", async () => {
+				const { contract, otherAccount } = await loadFixture(deployFixture);
 
-      tokenId = await contract.read.counter();
-      await contract.write.issue([hash]);
-    });
+				const tokenId = await contract.read.counter();
 
-    describe("Mint", function () {
-      describe("Success", async function () {
-        it("Should have an account balance of 1", async function () {
-          const balance0 = await contract.read.balanceOf([
-            getAddress(otherAccount.account.address),
-            tokenId,
-          ]);
+				await contract.write.issue();
 
-          expect(balance0).to.be.equal(parseUnits("0", 0));
+				expect(await contract.read.uri([tokenId,getAddress(otherAccount.account.address)])).to.be.equal(
+					`${DEFAULT_URI}/api/v1/nft/${tokenId}/${getAddress(otherAccount.account.address)}/reputation-score`,
+				);
+			});
+		});
 
-          await contract.write.mint(
-            [getAddress(otherAccount.account.address), tokenId, amount, data],
-            {
-              account: otherAccount.account.address,
-            }
-          );
+		describe("Revert", () => {
+			it("Should revert with NotFound (token doesn't exist)", async () => {
+				const { contract,otherAccount } = await loadFixture(deployFixture);
+				const tokenId = parseUnits("999", 0);
 
-          const balance1 = await contract.read.balanceOf([
-            getAddress(otherAccount.account.address),
-            tokenId,
-          ]);
+				await expect(contract.read.uri([tokenId,getAddress(otherAccount.account.address)])).to.be.rejectedWith(
+					"NotFound(999)",
+				);
+			});
+			it("Should revert if the account is empty", async () => {
+				const { contract } = await loadFixture(deployFixture);
 
-          expect(balance1).to.be.equal(amount);
-        });
-        it("Should emit Mint event", async function () {
-          const mintHash = await contract.write.mint(
-            [getAddress(otherAccount.account.address), tokenId, amount, data],
-            {
-              account: otherAccount.account.address,
-            }
-          );
+				const tokenId = await contract.read.counter();
 
-          const mintEvents = await contract.getEvents.Mint();
+				await contract.write.issue();
+			
+				await expect(contract.read.uri([tokenId, ""])).to.be.rejectedWith(
+					'EmptyAccountNotAllowed("Account cannot be empty")'
+				);
+			});
+			
+		});
+	});
 
-          expect(mintEvents.length).to.be.equal(1);
+	describe("Wrapper", () => {
+		const amount = parseUnits("1", 0);
+		const data = "0x0";
+		let tokenId: any;
+		let contract: any;
+		let otherAccount: any;
+		let date: any;
 
-          const mintEvent = mintEvents[0];
-          expect(mintEvent.eventName).to.be.equal("Mint");
-          expect(mintEvent.transactionHash).to.be.equal(mintHash);
-          expect(mintEvent.args.tokenId).to.be.equal(tokenId);
-          expect(mintEvent.args.account).to.be.equal(
-            getAddress(otherAccount.account.address)
-          );
-        });
-      });
-      describe("Revert", async function () {
-        it("Should revert with NotFound (token doesn't exist)", async function () {
-          const tokenId = parseUnits("999", 0);
+		beforeEach(async () => {
+			const fixture = await loadFixture(deployFixture);
+			contract = fixture.contract;
+			otherAccount = fixture.otherAccount;
 
-          await expect(
-            contract.write.mint(
-              [getAddress(otherAccount.account.address), tokenId, amount, data],
-              {
-                account: otherAccount.account.address,
-              }
-            )
-          ).to.be.rejectedWith("NotFound(999)");
-        });
-        it("Should revert with MintLimit (token balance > 1)", async function () {
-          await contract.write.mint(
-            [getAddress(otherAccount.account.address), tokenId, amount, data],
-            {
-              account: otherAccount.account.address,
-            }
-          );
+			tokenId = await contract.read.counter();
+			date = 1234567890;
+			await contract.write.issue();
+		});
 
-          await expect(
-            contract.write.mint(
-              [getAddress(otherAccount.account.address), tokenId, amount, data],
-              {
-                account: otherAccount.account.address,
-              }
-            )
-          ).to.be.rejectedWith(
-            `MintLimit("${getAddress(
-              otherAccount.account.address
-            )}", ${tokenId})`
-          );
-        });
-      });
-    });
-    describe("Burn", function () {
-      beforeEach(async function () {
-        await contract.write.mint(
-          [getAddress(otherAccount.account.address), tokenId, amount, data],
-          {
-            account: otherAccount.account.address,
-          }
-        );
-      });
-      describe("Success", async function () {
-        it("Should have an account balance of 0", async function () {
-          const balance1 = await contract.read.balanceOf([
-            getAddress(otherAccount.account.address),
-            tokenId,
-          ]);
+		describe("Mint", () => {
+			describe("Success", async () => {
+				it("Should have an account balance of 1", async () => {
+					const balance0 = await contract.read.balanceOf([
+						getAddress(otherAccount.account.address),
+						tokenId,
+					]);
 
-          expect(balance1).to.be.equal(amount);
+					expect(balance0).to.be.equal(parseUnits("0", 0));
 
-          await contract.write.burn(
-            [getAddress(otherAccount.account.address), tokenId, amount],
-            {
-              account: otherAccount.account.address,
-            }
-          );
+					await contract.write.mint(
+						[getAddress(otherAccount.account.address), tokenId, amount, data],
+						{ account: otherAccount.account.address },
+					);
 
-          const balance0 = await contract.read.balanceOf([
-            getAddress(otherAccount.account.address),
-            tokenId,
-          ]);
+					const balance1 = await contract.read.balanceOf([
+						getAddress(otherAccount.account.address),
+						tokenId,
+					]);
 
-          expect(balance0).to.be.equal(parseUnits("0", 0));
-        });
-        it("Should emit Burn event", async function () {
-          const burnHash = await contract.write.burn(
-            [getAddress(otherAccount.account.address), tokenId, amount],
-            {
-              account: otherAccount.account.address,
-            }
-          );
+					expect(balance1).to.be.equal(amount);
+				});
 
-          const burnEvents = await contract.getEvents.Burn();
+				it("Should emit Mint event", async () => {
+					const mintHash = await contract.write.mint(
+						[getAddress(otherAccount.account.address), tokenId, amount, data],
+						{ account: otherAccount.account.address },
+					);
 
-          expect(burnEvents.length).to.be.equal(1);
+					const mintEvents = await contract.getEvents.Mint();
 
-          const burnEvent = burnEvents[0];
-          expect(burnEvent.eventName).to.be.equal("Burn");
-          expect(burnEvent.transactionHash).to.be.equal(burnHash);
-          expect(burnEvent.args.tokenId).to.be.equal(tokenId);
-          expect(burnEvent.args.account).to.be.equal(
-            getAddress(otherAccount.account.address)
-          );
-        });
-      });
-      describe("Revert", async function () {
-        it("Should revert with NotAllowed (msg.sender != account)", async function () {
-          await expect(
-            contract.write.burn([
-              getAddress(otherAccount.account.address),
-              tokenId,
-              amount,
-            ])
-          ).to.be.rejectedWith(
-            `NotAllowed("${getAddress(
-              otherAccount.account.address
-            )}", ${tokenId})`
-          );
-        });
-        it("Should revert with NotFound (token doesn't exist)", async function () {
-          tokenId = parseUnits("999", 0);
+					expect(mintEvents.length).to.be.equal(1);
 
-          await expect(
-            contract.write.burn(
-              [getAddress(otherAccount.account.address), tokenId, amount],
-              {
-                account: otherAccount.account.address,
-              }
-            )
-          ).to.be.rejectedWith("NotFound(999)");
-        });
-      });
-    });
-    describe("Get score", function () {
-      beforeEach(async function () {
-        await contract.write.updateScores([date, cid], {
-          account: provider.account.address,
-        });
-      });
-      describe("Success", async function () {
-        it("Should return formatted uri", async function () {
-          const getScoreUri = await contract.read.getScores(
-            [date, tokenId, getAddress(otherAccount.account.address)],
-            {
-              account: otherAccount.account.address,
-            }
-          );
+					const mintEvent = mintEvents[0];
+					expect(mintEvent.eventName).to.be.equal("Mint");
+					expect(mintEvent.transactionHash).to.be.equal(mintHash);
+					expect(mintEvent.args.tokenId).to.be.equal(tokenId);
+					expect(mintEvent.args.account).to.be.equal(
+						getAddress(otherAccount.account.address),
+					);
+				});
+			});
 
-          expect(getScoreUri).to.be.equal(
-            `ipfs://${cid}/${tokenId}/${getAddress(
-              otherAccount.account.address
-            )}.json`
-          );
-        });
-      });
-      describe("Revert", async function () {
-        it("Should revert with NotFound (token doesn't exist)", async function () {
-          const { contract, otherAccount } = await loadFixture(deployFixture);
-          const date = BigInt(new Date().getTime());
-          const tokenId = parseUnits("999", 0);
+			describe("Revert", async () => {
+				it("Should revert with NotFound (token doesn't exist)", async () => {
+					const invalidTokenId = parseUnits("999", 0);
 
-          await expect(
-            contract.read.getScores(
-              [date, tokenId, getAddress(otherAccount.account.address)],
-              {
-                account: otherAccount.account.address,
-              }
-            )
-          ).to.be.rejectedWith("NotFound(999)");
-        });
-      });
-    });
-    describe("Update Scores", function () {
-      describe("Success", async function () {
-        it("Should update scores mapping", async function () {
-          await contract.write.updateScores([date, cid], {
-            account: provider.account.address,
-          });
+					await expect(
+						contract.write.mint(
+							[
+								getAddress(otherAccount.account.address),
+								invalidTokenId,
+								amount,
+								data,
+							],
+							{ account: otherAccount.account.address },
+						),
+					).to.be.rejectedWith("NotFound(999)");
+				});
 
-          const scores = await contract.read.getScores(
-            [date, tokenId, getAddress(provider.account.address)],
-            {
-              account: provider.account.address,
-            }
-          );
+				it("Should revert with MintLimit (token balance > 1)", async () => {
+					await contract.write.mint(
+						[getAddress(otherAccount.account.address), tokenId, amount, data],
+						{ account: otherAccount.account.address },
+					);
 
-          expect(scores).to.be.equal(
-            `ipfs://${cid}/${tokenId}/${getAddress(
-              provider.account.address
-            )}.json`
-          );
-        });
-        it("Should emit UpdateScores event", async function () {
-          const updateScoresHash = await contract.write.updateScores(
-            [date, cid],
-            {
-              account: provider.account.address,
-            }
-          );
+					await expect(
+						contract.write.mint(
+							[getAddress(otherAccount.account.address), tokenId, amount, data],
+							{ account: otherAccount.account.address },
+						),
+					).to.be.rejectedWith(
+						`MintLimit("${getAddress(otherAccount.account.address)}", ${tokenId})`,
+					);
+				});
+			});
+		});
 
-          const updateScoresEvents = await contract.getEvents.UpdateScores();
+		describe("Burn", () => {
+			beforeEach(async () => {
+				await contract.write.mint(
+					[getAddress(otherAccount.account.address), tokenId, amount, data],
+					{ account: otherAccount.account.address },
+				);
+			});
 
-          expect(updateScoresEvents.length).to.be.equal(1);
+			describe("Success", async () => {
+				it("Should have an account balance of 0", async () => {
+					const balance1 = await contract.read.balanceOf([
+						getAddress(otherAccount.account.address),
+						tokenId,
+					]);
 
-          const updateScoresEvent = updateScoresEvents[0];
-          expect(updateScoresEvent.eventName).to.be.equal("UpdateScores");
-          expect(updateScoresEvent.transactionHash).to.be.equal(
-            updateScoresHash
-          );
-          expect(updateScoresEvent.args.account).to.be.equal(
-            getAddress(provider.account.address)
-          );
-          expect(updateScoresEvent.args.date).to.be.equal(date);
-          expect(updateScoresEvent.args.cid).to.be.equal(cid);
-        });
-      });
-      describe("Revert", async function () {
-        it("Should revert with AccessControlUnauthorizedAccount (msg.sender doesn't have PROVIDER_ROLE)", async function () {
-          const { contract, otherAccount } = await loadFixture(deployFixture);
-          const PROVIDER_ROLE = await contract.read.PROVIDER_ROLE();
+					expect(balance1).to.be.equal(amount);
 
-          await expect(
-            contract.write.updateScores([date, cid], {
-              account: otherAccount.account.address,
-            })
-          ).to.be.rejectedWith(
-            `AccessControlUnauthorizedAccount("${getAddress(
-              otherAccount.account.address
-            )}", "${PROVIDER_ROLE}")`
-          );
-        });
-      });
-    });
-  });
+					await contract.write.burn(
+						[getAddress(otherAccount.account.address), tokenId, amount],
+						{ account: otherAccount.account.address },
+					);
+
+					const balance0 = await contract.read.balanceOf([
+						getAddress(otherAccount.account.address),
+						tokenId,
+					]);
+
+					expect(balance0).to.be.equal(parseUnits("0", 0));
+				});
+
+				it("Should emit Burn event", async () => {
+					const burnHash = await contract.write.burn(
+						[getAddress(otherAccount.account.address), tokenId, amount],
+						{ account: otherAccount.account.address },
+					);
+
+					const burnEvents = await contract.getEvents.Burn();
+
+					expect(burnEvents.length).to.be.equal(1);
+
+					const burnEvent = burnEvents[0];
+					expect(burnEvent.eventName).to.be.equal("Burn");
+					expect(burnEvent.transactionHash).to.be.equal(burnHash);
+					expect(burnEvent.args.tokenId).to.be.equal(tokenId);
+					expect(burnEvent.args.account).to.be.equal(
+						getAddress(otherAccount.account.address),
+					);
+				});
+			});
+
+			describe("Revert", async () => {
+				it("Should revert with NotAllowed (msg.sender != account)", async () => {
+					await expect(
+						contract.write.burn([
+							getAddress(otherAccount.account.address),
+							tokenId,
+							amount,
+						]),
+					).to.be.rejectedWith(
+						`NotAllowed("${getAddress(otherAccount.account.address)}", ${tokenId})`,
+					);
+				});
+
+				it("Should revert with NotFound (token doesn't exist)", async () => {
+					const invalidTokenId = parseUnits("999", 0);
+
+					await expect(
+						contract.write.burn(
+							[
+								getAddress(otherAccount.account.address),
+								invalidTokenId,
+								amount,
+							],
+							{ account: otherAccount.account.address },
+						),
+					).to.be.rejectedWith("NotFound(999)");
+				});
+			});
+		});
+	});
 });
