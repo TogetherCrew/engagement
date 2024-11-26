@@ -14,7 +14,7 @@ This project is built with Solidity, Hardhat, and OpenZeppelin libraries, ensuri
 | Address                                                                                         | Network                  |
 |-------------------------------------------------------------------------------------------------|--------------------------|
 | N/A                                                                                             | Sepolia                  |
-| https://sepolia-optimism.etherscan.io/address/0x843dd068997bf28B11FDfF073AeeD080DE41B287#code   | Optimisim Sepolia        |
+| https://sepolia-optimism.etherscan.io/address/0xd826769f1844cc83a16923d2aef8a479e62da732        | Optimisim Sepolia        |
 
 ---
 
